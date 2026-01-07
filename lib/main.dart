@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:taphoa/core/theme/app_colors.dart';
 import 'package:taphoa/routers/app_router.dart';
 
@@ -14,12 +15,17 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp.router(
       title: "Tạp hóa",
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [Locale('vi', 'VN'), Locale('en', 'US')],
+      locale: const Locale('vi', 'VN'),
       routerConfig: AppRouter.router,
       theme: ThemeData(
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: AppColors.backgroundColor,
-        ),
+        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.backgroundColor),
       ),
       debugShowCheckedModeBanner: false,
     );
