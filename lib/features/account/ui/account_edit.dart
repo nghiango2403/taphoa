@@ -21,60 +21,62 @@ class _AccountEditState extends State<AccountEdit> {
       ),
       body: Container(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              decoration: InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: "Họ tên",
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              TextField(
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: "Họ tên",
+                ),
               ),
-            ),
-            SizedBox(height: 10),
-            TextField(
-              decoration: InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: "Email",
+              SizedBox(height: 10),
+              TextField(
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: "Email",
+                ),
               ),
-            ),
-            SizedBox(height: 10),
-            TextField(
-              decoration: InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: "Số điện thoại",
+              SizedBox(height: 10),
+              TextField(
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: "Số điện thoại",
+                ),
               ),
-            ),
-            SizedBox(height: 10),
-            TextField(
-              decoration: InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: "Ngày sinh",
+              SizedBox(height: 10),
+              TextField(
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: "Ngày sinh",
+                ),
               ),
-            ),
-            SizedBox(height: 10),
-            TextField(
-              decoration: InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: "Địa chỉ",
+              SizedBox(height: 10),
+              TextField(
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: "Địa chỉ",
+                ),
               ),
-            ),
-            SizedBox(height: 10),
-            CustomDateTextfield(
-              label: "Chọn ngày",
-              onDateSelect: (date) => print("Ngày đã chọn: $date"),
-            ),
-            SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: () => print("Lưu"),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryColor,
-                foregroundColor: Colors.white,
+              SizedBox(height: 10),
+              CustomDateTextfield(
+                label: "Chọn ngày",
+                onDateSelect: (date) => print("Ngày đã chọn: $date"),
               ),
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: const Text("Lưu", style: TextStyle(fontSize: 17)),
+              SizedBox(height: 10),
+              ElevatedButton(
+                onPressed: () => print("Lưu"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryColor,
+                  foregroundColor: Colors.white,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: const Text("Lưu", style: TextStyle(fontSize: 17)),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

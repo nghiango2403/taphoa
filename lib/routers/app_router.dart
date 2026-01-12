@@ -6,6 +6,7 @@ import 'package:taphoa/features/account/ui/account_get.dart';
 import 'package:taphoa/features/admin/main/ui/admin_main_ui.dart';
 import 'package:taphoa/features/navigation/presentation/screens/main_screen.dart';
 import 'package:taphoa/features/staff/ui/bill_add.dart';
+import 'package:taphoa/features/staff/ui/product_add.dart';
 import 'package:taphoa/routers/router_names.dart';
 
 import '../features/auth/ui/login_screen.dart';
@@ -24,7 +25,16 @@ class AppRouter {
         branches: [
           StatefulShellBranch(
             routes: [
-              GoRoute(path: "/", builder: (context, state) => BillAdd()),
+              GoRoute(
+                path: "/",
+                builder: (context, state) => BillAdd(),
+                routes: [
+                  GoRoute(
+                    path: "product_add",
+                    builder: (context, state) => ProductAdd(),
+                  ),
+                ],
+              ),
             ],
           ),
           StatefulShellBranch(
