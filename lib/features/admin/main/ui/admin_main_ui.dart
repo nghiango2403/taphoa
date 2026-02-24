@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class AdminMainUi extends StatefulWidget {
   const AdminMainUi({super.key});
@@ -22,6 +23,8 @@ class _AdminMainUiState extends State<AdminMainUi> {
                   "Nhập hàng",
                   Colors.blue.shade900,
                   Colors.white,
+                  "/quanly/nhaphang",
+                  context,
                 ),
               ),
               Expanded(
@@ -30,6 +33,8 @@ class _AdminMainUiState extends State<AdminMainUi> {
                   "Thống kê",
                   Color(0xFFCBFBF1),
                   Color(0xFF39938A),
+                  "/",
+                  context,
                 ),
               ),
             ],
@@ -43,6 +48,8 @@ class _AdminMainUiState extends State<AdminMainUi> {
                   "Hóa đơn",
                   Color(0xFF9C27B0),
                   Colors.white,
+                  "/",
+                  context,
                 ),
               ),
               Expanded(
@@ -51,6 +58,8 @@ class _AdminMainUiState extends State<AdminMainUi> {
                   "Khuyến mãi",
                   Color(0xFFFB8C00),
                   Colors.white,
+                  "/quanly/khuyenmai",
+                  context,
                 ),
               ),
             ],
@@ -65,6 +74,8 @@ class _AdminMainUiState extends State<AdminMainUi> {
                   "Nhân viên",
                   Color(0xFF546E7A),
                   Colors.white,
+                  "/quanly/nhanvien",
+                  context,
                 ),
               ),
               Expanded(
@@ -73,6 +84,8 @@ class _AdminMainUiState extends State<AdminMainUi> {
                   "Hàng hóa",
                   Colors.red,
                   Colors.white,
+                  "/",
+                  context,
                 ),
               ),
             ],
@@ -84,36 +97,48 @@ class _AdminMainUiState extends State<AdminMainUi> {
   }
 }
 
-Widget item(IconData icon, String title, Color color, Color iconColor) {
-  return Container(
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(10),
-      color: Colors.white,
-      boxShadow: [
-        BoxShadow(
-          spreadRadius: 2,
-          blurRadius: 7,
-          color: Colors.black,
-          offset: Offset(0, 3),
-        ),
-      ],
-    ),
-    padding: const EdgeInsets.all(32),
-    margin: const EdgeInsets.all(16),
-    child: Column(
-      children: [
-        Container(
-          padding: EdgeInsets.all(8),
-          child: Icon(icon, size: 30, color: iconColor),
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        ),
-        SizedBox(height: 8),
-        Text(
-          "$title",
-          textAlign: TextAlign.center,
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-      ],
+Widget item(
+  IconData icon,
+  String title,
+  Color color,
+  Color iconColor,
+  String path,
+  BuildContext context,
+) {
+  return GestureDetector(
+    onTap: () {
+      context.go(path);
+    },
+    child: Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            spreadRadius: 2,
+            blurRadius: 7,
+            color: Colors.black,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(32),
+      margin: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          Container(
+            padding: EdgeInsets.all(8),
+            child: Icon(icon, size: 30, color: iconColor),
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          SizedBox(height: 8),
+          Text(
+            "$title",
+            textAlign: TextAlign.center,
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
     ),
   );
 }

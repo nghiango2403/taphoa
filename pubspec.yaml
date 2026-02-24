@@ -30,7 +30,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_localizations: # Thêm dòng này
+  flutter_localizations:
     sdk: flutter
   go_router: ^13.1.0
   flutter_launcher_icons: ^0.13.1

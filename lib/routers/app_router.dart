@@ -3,7 +3,14 @@ import 'package:go_router/go_router.dart';
 import 'package:taphoa/features/account/ui/account_edit.dart';
 import 'package:taphoa/features/account/ui/account_edit_password.dart';
 import 'package:taphoa/features/account/ui/account_get.dart';
+import 'package:taphoa/features/admin/khuyenmai/ui/khuyenmai_them.dart';
+import 'package:taphoa/features/admin/khuyenmai/ui/khuyenmai_tong.dart';
 import 'package:taphoa/features/admin/main/ui/admin_main_ui.dart';
+import 'package:taphoa/features/admin/nhanvien/ui/nhanvien_them.dart';
+import 'package:taphoa/features/admin/nhanvien/ui/nhanvien_tong.dart';
+import 'package:taphoa/features/admin/nhaphang/ui/nhaphang_them.dart';
+import 'package:taphoa/features/admin/nhaphang/ui/nhaphang_them_hanghoa.dart';
+import 'package:taphoa/features/admin/nhaphang/ui/nhaphang_tong.dart';
 import 'package:taphoa/features/navigation/presentation/screens/main_screen.dart';
 import 'package:taphoa/features/staff/ui/bill_add.dart';
 import 'package:taphoa/features/staff/ui/product_add.dart';
@@ -42,6 +49,44 @@ class AppRouter {
               GoRoute(
                 path: "/quanly",
                 builder: (context, state) => const AdminMainUi(),
+                routes: [
+                  GoRoute(
+                    path: "nhaphang",
+                    builder: (context, state) => const NhaphangTong(),
+                    routes: [
+                      GoRoute(
+                        path: "them",
+                        builder: (context, state) => const NhaphangThem(),
+                        routes: [
+                          GoRoute(
+                            path: "hanghoa",
+                            builder: (context, state) => NhaphangThemHanghoa(),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  GoRoute(
+                    path: "khuyenmai",
+                    builder: (context, state) => const KhuyenmaiTong(),
+                    routes: [
+                      GoRoute(
+                        path: "them",
+                        builder: (context, state) => const KhuyenmaiThem(),
+                      ),
+                    ],
+                  ),
+                  GoRoute(
+                    path: "nhanvien",
+                    builder: (context, state) => const NhanvienTong(),
+                    routes: [
+                      GoRoute(
+                        path: "them",
+                        builder: (context, state) => const NhanvienThem(),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ],
           ),
