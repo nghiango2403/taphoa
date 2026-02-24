@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:taphoa/features/account/ui/account_edit.dart';
 import 'package:taphoa/features/account/ui/account_edit_password.dart';
 import 'package:taphoa/features/account/ui/account_get.dart';
+import 'package:taphoa/features/admin/hanghoa/ui/hanghoa_them.dart';
+import 'package:taphoa/features/admin/hanghoa/ui/hanghoa_tong.dart';
 import 'package:taphoa/features/admin/khuyenmai/ui/khuyenmai_them.dart';
 import 'package:taphoa/features/admin/khuyenmai/ui/khuyenmai_tong.dart';
 import 'package:taphoa/features/admin/main/ui/admin_main_ui.dart';
@@ -11,6 +13,7 @@ import 'package:taphoa/features/admin/nhanvien/ui/nhanvien_tong.dart';
 import 'package:taphoa/features/admin/nhaphang/ui/nhaphang_them.dart';
 import 'package:taphoa/features/admin/nhaphang/ui/nhaphang_them_hanghoa.dart';
 import 'package:taphoa/features/admin/nhaphang/ui/nhaphang_tong.dart';
+import 'package:taphoa/features/admin/thongke/ui/thongke.dart';
 import 'package:taphoa/features/navigation/presentation/screens/main_screen.dart';
 import 'package:taphoa/features/staff/ui/bill_add.dart';
 import 'package:taphoa/features/staff/ui/product_add.dart';
@@ -85,6 +88,20 @@ class AppRouter {
                         builder: (context, state) => const NhanvienThem(),
                       ),
                     ],
+                  ),
+                  GoRoute(
+                    path: "hanghoa",
+                    builder: (context, state) => const HanghoaTong(),
+                    routes: [
+                      GoRoute(
+                        path: "them",
+                        builder: (context, state) => const HanghoaThem(),
+                      ),
+                    ],
+                  ),
+                  GoRoute(
+                    path: "thongke",
+                    builder: (context, state) => const ThongKe(),
                   ),
                 ],
               ),
