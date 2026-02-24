@@ -1,10 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:provider/provider.dart';
+import 'package:taphoa/core/network/dio_client.dart';
 import 'package:taphoa/core/theme/app_colors.dart';
+import 'package:taphoa/data/repostories/account_repositories.dart';
+import 'package:taphoa/data/repostories/auth_repositories.dart';
+import 'package:taphoa/features/account/logic/account_logic.dart';
+import 'package:taphoa/features/auth/logic/auth_logic.dart';
 import 'package:taphoa/routers/app_router.dart';
 
-void main() {
-  runApp(const MyApp());
+Future main() async {
+  await dotenv.load(fileName: ".env");
+  final dioClient = DioClient();
+  final authRepository = AuthRepository(dioClient.dio);
+  final accountRepo = AccountRepository(dioClient.dio);
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthLogic(authRepository)),
+        ChangeNotifierProvider(create: (_) => AccountLogic(accountRepo)),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -13,6 +32,7 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    final authLogic = context.read<AuthLogic>();
     return MaterialApp.router(
       title: "Tạp hóa",
       localizationsDelegates: const [
@@ -22,7 +42,7 @@ class MyApp extends StatelessWidget {
       ],
       supportedLocales: const [Locale('vi', 'VN'), Locale('en', 'US')],
       locale: const Locale('vi', 'VN'),
-      routerConfig: AppRouter.router,
+      routerConfig: AppRouter.createRouter(authLogic),
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(seedColor: AppColors.backgroundColor),

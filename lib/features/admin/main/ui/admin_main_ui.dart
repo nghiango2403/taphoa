@@ -48,7 +48,7 @@ class _AdminMainUiState extends State<AdminMainUi> {
                   "Hóa đơn",
                   Color(0xFF9C27B0),
                   Colors.white,
-                  "/",
+                  "/quanly/hoadon",
                   context,
                 ),
               ),

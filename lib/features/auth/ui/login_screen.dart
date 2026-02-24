@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:taphoa/core/theme/app_colors.dart';
+
+import '../logic/auth_logic.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -9,9 +12,22 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  bool isObscured=true;
+  // Sử dụng controller để lấy dữ liệu nhập vào
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Lắng nghe AuthLogic
+    final authLogic = context.watch<AuthLogic>();
+
     return Scaffold(
       body: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
@@ -21,7 +37,7 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
+              const Text(
                 "Tạp hóa",
                 style: TextStyle(
                   fontSize: 30,
@@ -29,8 +45,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   color: Colors.red,
                 ),
               ),
-              SizedBox(height: 60),
+              const SizedBox(height: 60),
+
+              // Tên đăng nhập
               TextField(
+                controller: _usernameController,
                 decoration: const InputDecoration(
                   labelText: "Tên đăng nhập",
                   border: OutlineInputBorder(),
@@ -41,9 +60,10 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 20),
 
+              // Mật khẩu
               TextField(
-                // controller: _passwordController,
-                obscureText: isObscured,
+                controller: _passwordController,
+                obscureText: authLogic.isObscured, // Lấy từ Logic
                 decoration: InputDecoration(
                   labelText: "Mật khẩu",
                   border: const OutlineInputBorder(),
@@ -51,29 +71,74 @@ class _LoginScreenState extends State<LoginScreen> {
                   filled: true,
                   fillColor: Colors.white,
                   suffixIcon: IconButton(
-                    onPressed: () => setState(() {
-                      isObscured = !isObscured;
-                    }),
-                    icon: Icon(isObscured?Icons.visibility:Icons.visibility_off),
+                    onPressed: () =>
+                        authLogic.toggleObscure(), // Gọi hàm từ Logic
+                    icon: Icon(
+                      authLogic.isObscured
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                    ),
                   ),
                 ),
               ),
+
+              // Hiển thị lỗi nếu có
+              if (authLogic.errorMessage != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 10),
+                  child: Text(
+                    authLogic.errorMessage!,
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                ),
+
               const SizedBox(height: 30),
 
+              // Nút đăng nhập
               SizedBox(
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: () {
-                    print("Đăng nhập1");
-                  },
-                  child: Text("ĐĂNG NHẬP", style: TextStyle(color: Colors.white),),
-                  style: ButtonStyle(
-                    backgroundColor: WidgetStatePropertyAll<Color>(AppColors.primaryColor),
+                  onPressed: authLogic.isLoading
+                      ? null
+                      : () async {
+                          await authLogic.login(
+                            _usernameController.text,
+                            _passwordController.text,
+                          );
+
+                          // Sau khi xong, kiểm tra nếu có user thì log ra thông tin
+                          if (authLogic.user != null) {
+                            final user = authLogic.user!.data.thongTin;
+                            print("--- ĐĂNG NHẬP THÀNH CÔNG ---");
+                            print("Họ tên: ${user.hoTen}");
+                            print("Chức vụ: ${user.chucVu}");
+                            print(
+                              "Access Token: ${authLogic.user!.data.accessToken}",
+                            );
+
+                            // Hiển thị thông báo nhanh
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text("Chào mừng ${user.hoTen}!"),
+                                ),
+                              );
+                            }
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryColor,
+                    disabledBackgroundColor: Colors.grey,
                   ),
+                  child: authLogic.isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text(
+                          "ĐĂNG NHẬP",
+                          style: TextStyle(color: Colors.white),
+                        ),
                 ),
               ),
-              SizedBox(height: 20)
             ],
           ),
         ),

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import 'package:taphoa/core/ultils/PopupItemModel.dart';
 import 'package:taphoa/core/widgets/popupmenu.dart';
+import 'package:taphoa/features/account/logic/account_logic.dart';
+import 'package:taphoa/features/auth/logic/auth_logic.dart';
 
 class AccountGet extends StatefulWidget {
   const AccountGet({super.key});
@@ -11,8 +14,43 @@ class AccountGet extends StatefulWidget {
 }
 
 class _AccountGetState extends State<AccountGet> {
+  final _hotencontroller = TextEditingController();
+  final _emailcontroller = TextEditingController();
+  final _sdtcontroller = TextEditingController();
+  final _ngaysinhcontroller = TextEditingController();
+  final _diachicontroller = TextEditingController();
+  final _gioitinhcontroller = TextEditingController();
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      fetchProfile();
+    });
+  }
+
+  fetchProfile() async {
+    final accountLogic = context.read<AccountLogic>();
+    await accountLogic.fetchProfile();
+    final info = accountLogic.accountData?.data;
+    if (!mounted) return;
+    if (info != null) {
+      setState(() {
+        _hotencontroller.text = info.hoTen;
+        _emailcontroller.text = info.email;
+        _sdtcontroller.text = info.sdt;
+        _ngaysinhcontroller.text =
+            "${info.ngaySinh.day}/${info.ngaySinh.month}/${info.ngaySinh.year}";
+        _diachicontroller.text = info.diaChi;
+        _gioitinhcontroller.text = info.gioiTinh;
+      });
+      print(info.hoTen);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final accountLogic = context.watch<AccountLogic>();
     return Scaffold(
       body: SingleChildScrollView(
         child: Padding(
@@ -75,8 +113,12 @@ class _AccountGetState extends State<AccountGet> {
                             context.go("/taikhoan/password");
                             break;
                           case 3:
-                            context.go("/taikhoan/logout");
-                            break;
+                            {
+                              final authLogic = context.read<AuthLogic>();
+                              authLogic.logout();
+                              break;
+                            }
+
                           default:
                         }
                       },
@@ -84,53 +126,77 @@ class _AccountGetState extends State<AccountGet> {
                   ],
                 ),
                 SizedBox(height: 10),
-                TextField(
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: "Họ tên",
+                if (accountLogic.isLoading)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 50),
+                    child: Center(
+                      child: Column(
+                        children: [
+                          CircularProgressIndicator(),
+                          SizedBox(height: 10),
+                          Text("Đang tải thông tin..."),
+                        ],
+                      ),
+                    ),
+                  )
+                else
+                  Column(
+                    children: [
+                      TextField(
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          labelText: "Họ tên",
+                        ),
+                        enabled: false,
+                        controller: _hotencontroller,
+                      ),
+                      SizedBox(height: 10),
+                      TextField(
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          labelText: "Email",
+                        ),
+                        enabled: false,
+                        controller: _emailcontroller,
+                      ),
+                      SizedBox(height: 10),
+                      TextField(
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          labelText: "Số điện thoại",
+                        ),
+                        enabled: false,
+                        controller: _sdtcontroller,
+                      ),
+                      SizedBox(height: 10),
+                      TextField(
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          labelText: "Ngày sinh",
+                        ),
+                        enabled: false,
+                        controller: _ngaysinhcontroller,
+                      ),
+                      SizedBox(height: 10),
+                      TextField(
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          labelText: "Địa chỉ",
+                        ),
+                        enabled: false,
+                        controller: _diachicontroller,
+                      ),
+                      SizedBox(height: 10),
+                      TextField(
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          labelText: "Giới tính",
+                        ),
+                        enabled: false,
+                        controller: _gioitinhcontroller,
+                      ),
+                    ],
                   ),
-                  enabled: false,
-                ),
-                SizedBox(height: 10),
-                TextField(
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: "Email",
-                  ),
-                  enabled: false,
-                ),
-                SizedBox(height: 10),
-                TextField(
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: "Số điện thoại",
-                  ),
-                  enabled: false,
-                ),
-                SizedBox(height: 10),
-                TextField(
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: "Ngày sinh",
-                  ),
-                  enabled: false,
-                ),
-                SizedBox(height: 10),
-                TextField(
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: "Địa chỉ",
-                  ),
-                  enabled: false,
-                ),
-                SizedBox(height: 10),
-                TextField(
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: "Giới tính",
-                  ),
-                  enabled: false,
-                ),
               ],
             ),
           ),
