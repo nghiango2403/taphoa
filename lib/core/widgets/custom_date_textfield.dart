@@ -4,10 +4,12 @@ import 'package:intl/intl.dart';
 class CustomDateTextfield extends StatefulWidget {
   final String label;
   final Function(DateTime) onDateSelect;
+  final TextEditingController? controller;
   const CustomDateTextfield({
     super.key,
     required this.label,
     required this.onDateSelect,
+    this.controller,
   });
 
   @override
@@ -15,7 +17,17 @@ class CustomDateTextfield extends StatefulWidget {
 }
 
 class _CustomDateTextfieldState extends State<CustomDateTextfield> {
-  final TextEditingController _controller = TextEditingController();
+  late TextEditingController _internalController;
+  TextEditingController get _effectiveController =>
+      widget.controller ?? _internalController;
+  @override
+  void initState() {
+    super.initState();
+    if (widget.controller == null) {
+      _internalController = TextEditingController();
+    }
+  }
+
   Future<void> _pickDate() async {
     DateTime? pickedDate = await showDatePicker(
       context: context,
@@ -29,7 +41,7 @@ class _CustomDateTextfieldState extends State<CustomDateTextfield> {
       String formattedDate = DateFormat('dd/MM/yyyy').format(pickedDate);
 
       setState(() {
-        _controller.text = formattedDate;
+        _effectiveController.text = formattedDate;
       });
 
       widget.onDateSelect(pickedDate);
@@ -38,14 +50,14 @@ class _CustomDateTextfieldState extends State<CustomDateTextfield> {
 
   @override
   void dispose() {
-    _controller.dispose();
+    _effectiveController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
-      controller: _controller,
+      controller: _effectiveController,
       readOnly: true,
       onTap: _pickDate,
       decoration: InputDecoration(

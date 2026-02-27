@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import 'package:intl/intl.dart'; // Đừng quên thêm intl vào pubspec.yaml
+import 'package:taphoa/features/admin/khuyenmai/logic/khuyenmai_logic.dart';
+import 'package:taphoa/features/admin/khuyenmai/models/khuyenmai_tong_model.dart';
 import 'package:taphoa/features/admin/khuyenmai/ui/khuyenmai_sua.dart';
 
 class KhuyenmaiTong extends StatefulWidget {
@@ -10,34 +14,44 @@ class KhuyenmaiTong extends StatefulWidget {
 }
 
 class _KhuyenmaiTongState extends State<KhuyenmaiTong> {
-  final List<Map<String, dynamic>> dsKhuyenMai = [
-    {
-      "stt": "1",
-      "ten": "Khuyến mãi mùa hè",
-      "batDau": "1/8/2025",
-      "ketThuc": "31/8/2025",
-      "tien": "10.000 đ",
-      "dieuKien": "100.000 đ",
-    },
-    {
-      "stt": "2",
-      "ten": "KM3",
-      "batDau": "17/8/2025",
-      "ketThuc": "31/8/2025",
-      "tien": "1.000 đ",
-      "dieuKien": "10.000 đ",
-    },
-  ];
+  int _currentTrang = 1;
+  final int _soLuongDong = 10;
+
+  @override
+  void initState() {
+    super.initState();
+    // Gọi API ngay khi vào trang
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
+    });
+  }
+
+  void _loadData() {
+    context.read<KhuyenMaiLogic>().fetchKhuyenMai({
+      "Trang": _currentTrang,
+      "Dong": _soLuongDong,
+    });
+  }
+
+  // Hàm định dạng tiền tệ chuyên nghiệp
+  String _formatCurrency(int value) {
+    return NumberFormat.currency(locale: 'vi_VN', symbol: 'đ').format(value);
+  }
+
+  // Hàm định dạng ngày tháng
+  String _formatDate(DateTime date) {
+    return DateFormat('dd/MM/yyyy').format(date);
+  }
 
   @override
   Widget build(BuildContext context) {
+    final logic = context.watch<KhuyenMaiLogic>();
+    final listKM = logic.listKhuyenMai;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
-        title: const Text(
-          "Quản lý khuyến mãi",
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
+        title: const Text("Quản lý khuyến mãi", style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0.5,
@@ -51,57 +65,51 @@ class _KhuyenmaiTongState extends State<KhuyenmaiTong> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "Danh sách (${dsKhuyenMai.length})",
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
+                  "Danh sách (${listKM.length})",
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
                 ElevatedButton.icon(
-                  onPressed: () {
-                    context.push("/quanly/khuyenmai/them");
-                  },
+                  onPressed: () => context.push("/quanly/khuyenmai/them"),
                   icon: const Icon(Icons.add, color: Colors.white, size: 18),
-                  label: const Text(
-                    "Thêm mới",
-                    style: TextStyle(color: Colors.white),
-                  ),
+                  label: const Text("Thêm mới", style: TextStyle(color: Colors.white)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF00C853),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
                 ),
               ],
             ),
           ),
 
+          // Xử lý các trạng thái hiển thị
           Expanded(
-            child: ListView.builder(
+            child: logic.isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : listKM.isEmpty
+                ? const Center(child: Text("Không có khuyến mãi nào"))
+                : ListView.builder(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: dsKhuyenMai.length,
+              itemCount: listKM.length,
               itemBuilder: (context, index) {
-                return _buildPromoCard(dsKhuyenMai[index]);
+                return _buildPromoCard(listKM[index], index);
               },
             ),
           ),
 
-          _buildMobilePagination(),
+          // Thanh phân trang
+          _buildMobilePagination(logic),
         ],
       ),
     );
   }
 
-  Widget _buildPromoCard(Map<String, dynamic> item) {
+  Widget _buildPromoCard(Danhsach item, int index) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
-        ],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
       ),
       child: Column(
         children: [
@@ -109,25 +117,16 @@ class _KhuyenmaiTongState extends State<KhuyenmaiTong> {
             leading: CircleAvatar(
               backgroundColor: Colors.indigo.shade50,
               child: Text(
-                item['stt'],
-                style: const TextStyle(
-                  color: Colors.indigo,
-                  fontWeight: FontWeight.bold,
-                ),
+                "${(index + 1) + (_currentTrang - 1) * _soLuongDong}", // Tính STT theo trang
+                style: const TextStyle(color: Colors.indigo, fontWeight: FontWeight.bold),
               ),
             ),
-            title: Text(
-              item['ten'],
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
+            title: Text(item.tenKhuyenMai, style: const TextStyle(fontWeight: FontWeight.bold)),
             trailing: TextButton(
               onPressed: () {
                 showDialog(
                   context: context,
-                  barrierDismissible: true,
-                  builder: (BuildContext context) {
-                    return KhuyenmaiSua(data: item);
-                  },
+                  builder: (context) => KhuyenmaiSua(data: item.toJson()),
                 );
               },
               child: const Text("Sửa", style: TextStyle(color: Colors.blue)),
@@ -140,32 +139,15 @@ class _KhuyenmaiTongState extends State<KhuyenmaiTong> {
               children: [
                 Row(
                   children: [
-                    _buildInfoItem(
-                      "Bắt đầu",
-                      item['batDau'],
-                      Icons.calendar_today_outlined,
-                    ),
-                    _buildInfoItem(
-                      "Kết thúc",
-                      item['ketThuc'],
-                      Icons.event_available_outlined,
-                    ),
+                    _buildInfoItem("Bắt đầu", _formatDate(item.ngayBatDau), Icons.calendar_today_outlined),
+                    _buildInfoItem("Kết thúc", _formatDate(item.ngayKetThuc), Icons.event_available_outlined),
                   ],
                 ),
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    _buildInfoItem(
-                      "Tiền KM",
-                      item['tien'],
-                      Icons.confirmation_number_outlined,
-                      color: Colors.red,
-                    ),
-                    _buildInfoItem(
-                      "Điều kiện",
-                      item['dieuKien'],
-                      Icons.shopping_bag_outlined,
-                    ),
+                    _buildInfoItem("Tiền KM", _formatCurrency(item.tienKhuyenMai), Icons.confirmation_number_outlined, color: Colors.red),
+                    _buildInfoItem("Điều kiện", _formatCurrency(item.dieuKien), Icons.shopping_bag_outlined),
                   ],
                 ),
               ],
@@ -176,56 +158,53 @@ class _KhuyenmaiTongState extends State<KhuyenmaiTong> {
     );
   }
 
-  Widget _buildInfoItem(
-    String label,
-    String value,
-    IconData icon, {
-    Color? color,
-  }) {
+  Widget _buildInfoItem(String label, String value, IconData icon, {Color? color}) {
     return Expanded(
       child: Row(
         children: [
           Icon(icon, size: 16, color: Colors.grey),
           const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: const TextStyle(fontSize: 11, color: Colors.grey),
-              ),
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: color ?? Colors.black87,
+          Flexible(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                Text(
+                  value,
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: color ?? Colors.black87),
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildMobilePagination() {
+  Widget _buildMobilePagination(KhuyenMaiLogic logic) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       color: Colors.white,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           IconButton(
-            onPressed: () {},
+            onPressed: _currentTrang > 1 ? () {
+              setState(() => _currentTrang--);
+              _loadData();
+            } : null,
             icon: const Icon(Icons.arrow_back_ios, size: 18),
           ),
-          const Text(
-            "Trang 1 / 10",
-            style: TextStyle(fontWeight: FontWeight.bold),
+          Text(
+            "Trang $_currentTrang / ${logic.tongSoTrang}",
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           IconButton(
-            onPressed: () {},
+            onPressed: _currentTrang < logic.tongSoTrang ? () {
+              setState(() => _currentTrang++);
+              _loadData();
+            } : null,
             icon: const Icon(Icons.arrow_forward_ios, size: 18),
           ),
         ],

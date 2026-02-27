@@ -33,20 +33,18 @@ class AppRouter {
       navigatorKey: _rootNavigatorKey,
       refreshListenable: authLogic,
       redirect: (context, state) {
+        if (!authLogic.isInitialized) return null;
         final bool loggedIn = authLogic.user != null;
         final bool loggingIn = state.matchedLocation == '/login';
 
-        // 2. Nếu CHƯA đăng nhập mà cố vào các trang bên trong -> Ép về /login
         if (!loggedIn) {
           return loggingIn ? null : '/login';
         }
 
-        // 3. Nếu ĐÃ đăng nhập mà cố tình vào lại trang /login -> Đẩy về trang chủ /
         if (loggedIn && loggingIn) {
           return '/';
         }
 
-        // 4. Các trường hợp còn lại cho phép đi tiếp
         return null;
       },
       routes: [

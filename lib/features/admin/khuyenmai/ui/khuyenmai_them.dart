@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:taphoa/features/admin/khuyenmai/logic/khuyenmai_logic.dart'; // Thay đổi path cho đúng project của bạn
 
 class KhuyenmaiThem extends StatefulWidget {
   const KhuyenmaiThem({super.key});
@@ -14,21 +16,80 @@ class _KhuyenmaiThemState extends State<KhuyenmaiThem> {
   final TextEditingController _tienController = TextEditingController();
   final TextEditingController _dieuKienController = TextEditingController();
 
+  DateTime? _startDate;
+  DateTime? _endDate;
+
+  // Hàm chọn ngày và lưu vào biến DateTime
   Future<void> _selectDate(
-    BuildContext context,
-    TextEditingController controller,
-  ) async {
+      BuildContext context,
+      TextEditingController controller,
+      bool isStartDate,
+      ) async {
     DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
-      firstDate: DateTime(2020),
+      firstDate: DateTime.now().subtract(const Duration(days: 365)),
       lastDate: DateTime(2101),
     );
     if (picked != null) {
       setState(() {
+        if (isStartDate) {
+          _startDate = picked;
+        } else {
+          _endDate = picked;
+        }
         controller.text = "${picked.day}/${picked.month}/${picked.year}";
       });
     }
+  }
+
+  // Hàm xử lý khi nhấn Lưu
+  void _handleSave() async {
+    final logic = context.read<KhuyenMaiLogic>();
+
+    // 1. Validation cơ bản
+    if (_tenController.text.isEmpty || _startDate == null || _endDate == null) {
+      _showSnackBar("Vui lòng điền đầy đủ thông tin bắt buộc");
+      return;
+    }
+
+    if (_endDate!.isBefore(_startDate!)) {
+      _showSnackBar("Ngày kết thúc phải sau ngày bắt đầu");
+      return;
+    }
+
+    // 2. Chuẩn bị dữ liệu
+    final Map<String, dynamic> data = {
+      "TenKhuyenMai": _tenController.text.trim(),
+      "NgayBatDau": _startDate!.toIso8601String(),
+      "NgayKetThuc": _endDate!.toIso8601String(),
+      "TienKhuyenMai": int.tryParse(_tienController.text.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0,
+      "DieuKien": int.tryParse(_dieuKienController.text.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0,
+    };
+
+    // 3. Gọi Logic xử lý
+    FocusScope.of(context).unfocus(); // Ẩn bàn phím
+    await logic.themKhuyenMai(
+      data,
+      onSuccess: () {
+        _showSnackBar("Thêm khuyến mãi thành công!", isError: false);
+        Navigator.pop(context); // Quay lại trang danh sách
+      },
+    );
+
+    // 4. Hiển thị lỗi nếu có từ server
+    if (logic.errorMessage != null) {
+      _showSnackBar(logic.errorMessage!);
+    }
+  }
+
+  void _showSnackBar(String message, {bool isError = true}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red : Colors.green,
+      ),
+    );
   }
 
   @override
@@ -36,10 +97,7 @@ class _KhuyenmaiThemState extends State<KhuyenmaiThem> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
-        title: const Text(
-          "Thêm khuyến mãi",
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
+        title: const Text("Thêm khuyến mãi", style: TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
@@ -54,31 +112,37 @@ class _KhuyenmaiThemState extends State<KhuyenmaiThem> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                ),
-              ],
+              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildInputLabel("Tên khuyến mãi"),
+                _buildInputLabel("Tên khuyến mãi *"),
                 _buildTextField(_tenController, "Nhập tên chương trình..."),
 
                 const SizedBox(height: 16),
-                _buildInputLabel("Ngày bắt đầu"),
-                _buildDateField(
-                  _batDauController,
-                  () => _selectDate(context, _batDauController),
-                ),
-
-                const SizedBox(height: 16),
-                _buildInputLabel("Ngày kết thúc"),
-                _buildDateField(
-                  _ketThucController,
-                  () => _selectDate(context, _ketThucController),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildInputLabel("Ngày bắt đầu *"),
+                          _buildDateField(_batDauController, () => _selectDate(context, _batDauController, true)),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildInputLabel("Ngày kết thúc *"),
+                          _buildDateField(_ketThucController, () => _selectDate(context, _ketThucController, false)),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
 
                 const SizedBox(height: 16),
@@ -99,24 +163,15 @@ class _KhuyenmaiThemState extends State<KhuyenmaiThem> {
     );
   }
 
+  // --- Các Widget thành phần giữ nguyên style của bạn ---
   Widget _buildInputLabel(String label) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0),
-      child: Text(
-        label,
-        style: const TextStyle(
-          fontWeight: FontWeight.w600,
-          color: Colors.black87,
-        ),
-      ),
+      child: Text(label, style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.black87)),
     );
   }
 
-  Widget _buildTextField(
-    TextEditingController controller,
-    String hint, {
-    bool isNumber = false,
-  }) {
+  Widget _buildTextField(TextEditingController controller, String hint, {bool isNumber = false}) {
     return TextField(
       controller: controller,
       keyboardType: isNumber ? TextInputType.number : TextInputType.text,
@@ -124,18 +179,9 @@ class _KhuyenmaiThemState extends State<KhuyenmaiThem> {
         hintText: hint,
         filled: true,
         fillColor: Colors.grey[50],
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 12,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: Colors.grey.shade300),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: Colors.grey.shade200),
-        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey.shade300)),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey.shade200)),
       ),
     );
   }
@@ -147,17 +193,10 @@ class _KhuyenmaiThemState extends State<KhuyenmaiThem> {
       onTap: onTap,
       decoration: InputDecoration(
         hintText: "dd/mm/yyyy",
-        suffixIcon: const Icon(
-          Icons.calendar_today,
-          size: 20,
-          color: Colors.grey,
-        ),
+        suffixIcon: const Icon(Icons.calendar_today, size: 20, color: Colors.grey),
         filled: true,
         fillColor: Colors.grey[50],
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: Colors.grey.shade300),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey.shade300)),
       ),
     );
   }
@@ -170,33 +209,27 @@ class _KhuyenmaiThemState extends State<KhuyenmaiThem> {
             onPressed: () => Navigator.pop(context),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 15),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             child: const Text("Huỷ", style: TextStyle(color: Colors.grey)),
           ),
         ),
         const SizedBox(width: 16),
         Expanded(
-          child: ElevatedButton(
-            onPressed: () {
-              print("Lưu khuyến mãi: ${_tenController.text}");
+          child: Consumer<KhuyenMaiLogic>(
+            builder: (context, logic, child) {
+              return ElevatedButton(
+                onPressed: logic.isLoading ? null : _handleSave,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF00C853),
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: logic.isLoading
+                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                    : const Text("Lưu khuyến mãi", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              );
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF00C853),
-              padding: const EdgeInsets.symmetric(vertical: 15),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: const Text(
-              "Lưu khuyến mãi",
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
           ),
         ),
       ],

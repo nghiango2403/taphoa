@@ -6,20 +6,31 @@ import 'package:taphoa/core/network/dio_client.dart';
 import 'package:taphoa/core/theme/app_colors.dart';
 import 'package:taphoa/data/repostories/account_repositories.dart';
 import 'package:taphoa/data/repostories/auth_repositories.dart';
+import 'package:taphoa/data/repostories/hanghoa_repositories.dart';
+import 'package:taphoa/data/repostories/khuyenmai_repositories.dart';
 import 'package:taphoa/features/account/logic/account_logic.dart';
+import 'package:taphoa/features/admin/hanghoa/logic/hanghoa_logic.dart';
+import 'package:taphoa/features/admin/khuyenmai/logic/khuyenmai_logic.dart';
 import 'package:taphoa/features/auth/logic/auth_logic.dart';
 import 'package:taphoa/routers/app_router.dart';
 
 Future main() async {
   await dotenv.load(fileName: ".env");
   final dioClient = DioClient();
+
   final authRepository = AuthRepository(dioClient.dio);
   final accountRepo = AccountRepository(dioClient.dio);
+  final khuyenmaiRepo = KhuyenMaiRepository(dioClient.dio);
+  final hanghoaRepo = HangHoaRepository(dioClient.dio);
+  final authLogic = AuthLogic(authRepository);
+  await authLogic.loadSavedAuth();
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthLogic(authRepository)),
+        ChangeNotifierProvider.value(value: authLogic),
         ChangeNotifierProvider(create: (_) => AccountLogic(accountRepo)),
+        ChangeNotifierProvider(create: (_) => KhuyenMaiLogic(khuyenmaiRepo)),
+        ChangeNotifierProvider(create: (_) => HangHoaLogic(hanghoaRepo))
       ],
       child: const MyApp(),
     ),

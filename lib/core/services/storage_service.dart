@@ -1,4 +1,5 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:taphoa/features/auth/models/user_model.dart';
 
 class StorageService {
   final _storage = const FlutterSecureStorage();
@@ -6,6 +7,7 @@ class StorageService {
   static const _accessTokenKey = 'access_token';
   static const _refreshTokenKey = 'refresh_token';
   static const _role = '';
+  static UserModel? _user;
 
   Future<void> saveAccessToken(String token) async {
     await _storage.write(key: _accessTokenKey, value: token);
@@ -25,6 +27,10 @@ class StorageService {
 
   Future<void> saveRole(String role) async {
     await _storage.write(key: _role, value: role);
+  }
+
+  Future<String?> getRole() async {
+    return await _storage.read(key: _role);
   }
 
   Future<void> clearAll() async {

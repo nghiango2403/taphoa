@@ -12,9 +12,14 @@ class Endpoints {
   static const String login = "/dangnhap";
   static const String laythongtintaikhoan = "/laythongtintaikhoan";
   static const String refreshToken = "/auth/refresh-token";
-  static const String forgotPassword = "/auth/forgot-password";
+  static const String doithongtintaikhoan = "/doithongtintaikhoan";
 
-  static const String getStaffList = "/staff/all";
-  static const String addStaff = "/staff/create";
+  static const String laykhuyenmai = "/laykhuyenmai";
+  static const String themkhuyenmai = "/themkhuyenmai";
+  static const String capnhatkhuyenmai = "/capnhatkhuyenmai";
+  static const String themhanghoa = "/themhanghoa";
+  static const String timhanghoa = "/timhanghoa";
+  static const String layhanghoa = "/layhanghoa";
+  static const String capnhathanghoa = "/capnhathanghoa";
   // static const String updateStaff = (int id) => "/staff/update/$id"; // Endpoint dạng function cho ID
 }

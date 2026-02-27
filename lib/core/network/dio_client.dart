@@ -54,21 +54,26 @@ class DioClient {
       final refreshToken = await _storageService.getRefreshToken();
       if (refreshToken == null) return false;
 
-      final response = await Dio().post(
-        Endpoints.baseUrl + Endpoints.refreshToken,
+      final dioRefresh = Dio(
+        BaseOptions(
+          baseUrl: Endpoints.baseUrl,
+          contentType: 'application/json',
+        ),
+      );
+
+      final response = await dioRefresh.post(
+        Endpoints.refreshToken,
         data: {'refreshToken': refreshToken},
       );
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         final newAccessToken = response.data['data']['accessToken'];
-        final newRole = response.data['data']['ThongTin']['ChucVu'];
-
         await _storageService.saveAccessToken(newAccessToken);
-        await _storageService.saveRole(newRole);
         return true;
       }
       return false;
     } catch (e) {
+      print("Refresh Token Failed: $e");
       return false;
     }
   }

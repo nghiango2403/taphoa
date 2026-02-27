@@ -51,6 +51,7 @@ class _AccountGetState extends State<AccountGet> {
   @override
   Widget build(BuildContext context) {
     final accountLogic = context.watch<AccountLogic>();
+    final info = accountLogic.accountData?.data;
     return Scaffold(
       body: SingleChildScrollView(
         child: Padding(
@@ -126,81 +127,119 @@ class _AccountGetState extends State<AccountGet> {
                   ],
                 ),
                 SizedBox(height: 10),
+                const SizedBox(height: 10),
+
+                // 1. TRẠNG THÁI ĐANG TẢI
                 if (accountLogic.isLoading)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 50),
-                    child: Center(
-                      child: Column(
-                        children: [
-                          CircularProgressIndicator(),
-                          SizedBox(height: 10),
-                          Text("Đang tải thông tin..."),
-                        ],
-                      ),
-                    ),
+                  const _LoadingView()
+                // 2. TRẠNG THÁI LỖI (Thêm phần này)
+                else if (accountLogic.errorMessage != null)
+                  _ErrorView(
+                    message: accountLogic.errorMessage!,
+                    onRetry: () => accountLogic.fetchProfile(),
                   )
+                // 3. TRẠNG THÁI HIỂN THỊ DATA
+                else if (info != null)
+                  _ProfileForm(info: info)
+                // 4. TRƯỜNG HỢP TRỐNG (Nếu data null và không lỗi)
                 else
-                  Column(
-                    children: [
-                      TextField(
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: "Họ tên",
-                        ),
-                        enabled: false,
-                        controller: _hotencontroller,
-                      ),
-                      SizedBox(height: 10),
-                      TextField(
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: "Email",
-                        ),
-                        enabled: false,
-                        controller: _emailcontroller,
-                      ),
-                      SizedBox(height: 10),
-                      TextField(
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: "Số điện thoại",
-                        ),
-                        enabled: false,
-                        controller: _sdtcontroller,
-                      ),
-                      SizedBox(height: 10),
-                      TextField(
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: "Ngày sinh",
-                        ),
-                        enabled: false,
-                        controller: _ngaysinhcontroller,
-                      ),
-                      SizedBox(height: 10),
-                      TextField(
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: "Địa chỉ",
-                        ),
-                        enabled: false,
-                        controller: _diachicontroller,
-                      ),
-                      SizedBox(height: 10),
-                      TextField(
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: "Giới tính",
-                        ),
-                        enabled: false,
-                        controller: _gioitinhcontroller,
-                      ),
-                    ],
-                  ),
+                  const Text("Không có dữ liệu hiển thị."),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _LoadingView extends StatelessWidget {
+  const _LoadingView();
+  @override
+  Widget build(BuildContext context) => const Padding(
+    padding: EdgeInsets.symmetric(vertical: 50),
+    child: Center(
+      child: Column(
+        children: [
+          CircularProgressIndicator(),
+          SizedBox(height: 10),
+          Text("Đang tải thông tin..."),
+        ],
+      ),
+    ),
+  );
+}
+
+class _ErrorView extends StatelessWidget {
+  final String message;
+  final VoidCallback onRetry;
+
+  const _ErrorView({required this.message, required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 30),
+      child: Column(
+        children: [
+          const Icon(Icons.error_outline, color: Colors.red, size: 48),
+          const SizedBox(height: 10),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.red),
+          ),
+          const SizedBox(height: 20),
+          ElevatedButton.icon(
+            onPressed: onRetry,
+            icon: const Icon(Icons.refresh),
+            label: const Text("Thử lại ngay"),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProfileForm extends StatelessWidget {
+  final dynamic info; // Truyền Model Data vào đây
+
+  const _ProfileForm({required this.info});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        _buildField("Họ tên", info.hoTen),
+        _buildField("Email", info.email),
+        _buildField("Số điện thoại", info.sdt),
+        _buildField(
+          "Ngày sinh",
+          "${info.ngaySinh.day}/${info.ngaySinh.month}/${info.ngaySinh.year}",
+        ),
+        _buildField("Địa chỉ", info.diaChi),
+        _buildField(
+          "Giới tính",
+          info.gioiTinh == "0" ? "Nam" : "Nữ",
+        ), // Ví dụ logic hiển thị
+      ],
+    );
+  }
+
+  Widget _buildField(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: TextFormField(
+        // Dùng TextFormField hoặc TextField với initialValue
+        initialValue: value,
+        key: Key(value), // Thêm key để Flutter biết cần vẽ lại khi value đổi
+        decoration: InputDecoration(
+          border: const OutlineInputBorder(),
+          labelText: label,
+        ),
+        readOnly: true, // Vì đây là màn hình xem thông tin
+        enabled: false,
       ),
     );
   }

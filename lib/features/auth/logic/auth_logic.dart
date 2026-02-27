@@ -19,6 +19,10 @@ class AuthLogic extends ChangeNotifier {
   bool get isObscured => _isObscured;
   bool _isLoggedOut = false;
   bool get isLoggedOut => _isLoggedOut;
+  String? accessToken;
+  String? refreshToken;
+  String? role;
+  bool isInitialized = false;
 
   void toggleObscure() {
     _isObscured = !_isObscured;
@@ -51,6 +55,16 @@ class AuthLogic extends ChangeNotifier {
   void logout() {
     _isLoggedOut = true;
     _user = null;
+    notifyListeners();
+  }
+
+  Future<void> loadSavedAuth() async {
+    final storage = StorageService();
+    accessToken = await storage.getAccessToken();
+    refreshToken = await storage.getRefreshToken();
+    role = await storage.getRole();
+
+    isInitialized = true;
     notifyListeners();
   }
 }
