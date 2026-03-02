@@ -1,7 +1,3 @@
-// To parse this JSON data, do
-//
-//     final accountGetModel = accountGetModelFromJson(jsonString);
-
 import 'dart:convert';
 
 AccountGetModel accountGetModelFromJson(String str) =>

@@ -4,13 +4,19 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:taphoa/core/network/dio_client.dart';
 import 'package:taphoa/core/theme/app_colors.dart';
+import 'package:taphoa/data/logic/chucvu_logic.dart';
 import 'package:taphoa/data/repostories/account_repositories.dart';
 import 'package:taphoa/data/repostories/auth_repositories.dart';
+import 'package:taphoa/data/repostories/chucvu_repositories.dart';
 import 'package:taphoa/data/repostories/hanghoa_repositories.dart';
 import 'package:taphoa/data/repostories/khuyenmai_repositories.dart';
+import 'package:taphoa/data/repostories/nhanvien_repositories.dart';
+import 'package:taphoa/data/repostories/nhaphang_repositories.dart';
 import 'package:taphoa/features/account/logic/account_logic.dart';
 import 'package:taphoa/features/admin/hanghoa/logic/hanghoa_logic.dart';
 import 'package:taphoa/features/admin/khuyenmai/logic/khuyenmai_logic.dart';
+import 'package:taphoa/features/admin/nhanvien/logic/NhanVienLogic.dart';
+import 'package:taphoa/features/admin/nhaphang/logic/nhaphang_logic.dart';
 import 'package:taphoa/features/auth/logic/auth_logic.dart';
 import 'package:taphoa/routers/app_router.dart';
 
@@ -22,6 +28,9 @@ Future main() async {
   final accountRepo = AccountRepository(dioClient.dio);
   final khuyenmaiRepo = KhuyenMaiRepository(dioClient.dio);
   final hanghoaRepo = HangHoaRepository(dioClient.dio);
+  final nhanvienRepo = NhanVienRepository(dioClient.dio);
+  final chucvuRepo = ChucVuRepository(dioClient.dio);
+  final nhaphangRepo = NhapHangRepository(dioClient.dio);
   final authLogic = AuthLogic(authRepository);
   await authLogic.loadSavedAuth();
   runApp(
@@ -30,7 +39,10 @@ Future main() async {
         ChangeNotifierProvider.value(value: authLogic),
         ChangeNotifierProvider(create: (_) => AccountLogic(accountRepo)),
         ChangeNotifierProvider(create: (_) => KhuyenMaiLogic(khuyenmaiRepo)),
-        ChangeNotifierProvider(create: (_) => HangHoaLogic(hanghoaRepo))
+        ChangeNotifierProvider(create: (_) => HangHoaLogic(hanghoaRepo)),
+        ChangeNotifierProvider(create: (_) => NhanVienLogic(nhanvienRepo)),
+        ChangeNotifierProvider(create: (_) => ChucVuLogic(chucvuRepo)),
+        ChangeNotifierProvider(create: (_) => NhapHangLogic(nhaphangRepo)),
       ],
       child: const MyApp(),
     ),
@@ -40,7 +52,6 @@ Future main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     final authLogic = context.read<AuthLogic>();
@@ -66,15 +77,6 @@ class MyApp extends StatelessWidget {
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
   final String title;
 
   @override
@@ -86,50 +88,25 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _incrementCounter() {
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
+
       _counter++;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+
     return Scaffold(
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
+
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
+
         title: Text(widget.title),
       ),
       body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
+
         child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
+
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             const Text('You have pushed the button this many times:'),
@@ -144,7 +121,7 @@ class _MyHomePageState extends State<MyHomePage> {
         onPressed: _incrementCounter,
         tooltip: 'Increment',
         child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      ),
     );
   }
 }

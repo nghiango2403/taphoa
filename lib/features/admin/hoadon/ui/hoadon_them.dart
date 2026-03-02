@@ -25,7 +25,7 @@ class _HoaDonThemState extends State<HoaDonThem> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA), // Màu nền xám nhạt hiện đại
+      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
         title: const Text(
           "Tạo hoá đơn",
@@ -41,13 +41,12 @@ class _HoaDonThemState extends State<HoaDonThem> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Section 1: Thông tin thanh toán & KM
+
             _buildSectionTitle("Thông tin chung"),
             _buildPaymentInfoCard(),
 
             const SizedBox(height: 24),
 
-            // Section 2: Danh sách hàng hóa
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -64,7 +63,6 @@ class _HoaDonThemState extends State<HoaDonThem> {
 
             const SizedBox(height: 32),
 
-            // Section 3: Nút hành động
             _buildActionButtons(),
           ],
         ),
@@ -298,7 +296,6 @@ class _HoaDonThemState extends State<HoaDonThem> {
   }
 }
 
-// Dialog chọn hàng hoá (Clean Version)
 class HoaDonThemChon extends StatelessWidget {
   const HoaDonThemChon({super.key});
 

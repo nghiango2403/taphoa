@@ -43,7 +43,7 @@ class KhuyenMaiRepository {
     try {
       final Map<String, dynamic> queryParams = {
         "MaKhuyenMai": id,
-        ...data, // Giải nén các trường TenKhuyenMai, NgayBatDau... vào đây
+        ...data,
       };
 
       final response = await _dio.put(

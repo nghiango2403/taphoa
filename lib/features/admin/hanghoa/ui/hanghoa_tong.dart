@@ -18,13 +18,12 @@ class _HanghoaTongState extends State<HanghoaTong> {
   @override
   void initState() {
     super.initState();
-    // Tự động load dữ liệu khi vào trang
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<HangHoaLogic>().fetchHangHoa();
     });
   }
 
-  // Định dạng tiền tệ: 100000 -> 100.000 đ
   String _formatCurrency(int value) {
     return NumberFormat.currency(locale: 'vi_VN', symbol: 'đ').format(value);
   }
@@ -60,7 +59,7 @@ class _HanghoaTongState extends State<HanghoaTong> {
                 : RefreshIndicator(
               onRefresh: () => logic.fetchHangHoa(),
               child: ListView.builder(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 80), // Cách đáy để tránh đè nút
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 80),
                 itemCount: logic.listHangHoa.length,
                 itemBuilder: (context, index) =>
                     _buildProductCard(logic.listHangHoa[index], index + 1),
@@ -95,7 +94,7 @@ class _HanghoaTongState extends State<HanghoaTong> {
               Expanded(
                 child: TextField(
                   controller: _searchController,
-                  onChanged: (value) => setState(() {}), // Để cập nhật UI khi xóa text
+                  onChanged: (value) => setState(() {}),
                   decoration: InputDecoration(
                     hintText: "Nhập tên hàng hoá...",
                     prefixIcon: const Icon(Icons.search),
@@ -120,7 +119,7 @@ class _HanghoaTongState extends State<HanghoaTong> {
                 onPressed: () {
                   final query = _searchController.text.trim();
                   context.read<HangHoaLogic>().searchHangHoa(query);
-                  FocusScope.of(context).unfocus(); // Đóng bàn phím sau khi nhấn tìm
+                  FocusScope.of(context).unfocus();
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF6C5CE7),

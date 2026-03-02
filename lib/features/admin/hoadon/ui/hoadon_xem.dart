@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
 class HoadonXem extends StatelessWidget {
-  final Map<String, dynamic> data; // Nhận dữ liệu hoá đơn truyền vào
+  final Map<String, dynamic> data;
 
   const HoadonXem({super.key, required this.data});
 
   @override
   Widget build(BuildContext context) {
-    // Chúng ta trả về AlertDialog trực tiếp ở đây
+
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: Row(
@@ -24,7 +24,7 @@ class HoadonXem extends StatelessWidget {
         ],
       ),
       content: SingleChildScrollView(
-        // Thêm Scroll để tránh tràn màn hình khi hoá đơn dài
+
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -36,7 +36,6 @@ class HoadonXem extends StatelessWidget {
             _buildInfoRow("Khuyến mãi:", "${data['km'] ?? 'Không áp dụng'}"),
             const SizedBox(height: 15),
 
-            // Bảng chi tiết hàng hoá
             Table(
               border: TableBorder.all(
                 color: Colors.grey.shade200,
@@ -49,14 +48,14 @@ class HoadonXem extends StatelessWidget {
               },
               children: [
                 const TableRow(
-                  // backgroundColor: Color(0xFFF8F9FA),
+
                   children: [
                     _Cell(text: "Tên hàng", isHeader: true),
                     _Cell(text: "Giá (đ)", isHeader: true),
                     _Cell(text: "Tổng", isHeader: true),
                   ],
                 ),
-                // Map dữ liệu từ danh sách hàng hoá vào bảng
+
                 ...((data['items'] as List? ?? []).map(
                   (item) => TableRow(
                     children: [
@@ -71,7 +70,6 @@ class HoadonXem extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            // Trạng thái thanh toán
             Row(
               children: [
                 const Text("Trạng thái: ", style: TextStyle(fontSize: 14)),
@@ -87,13 +85,12 @@ class HoadonXem extends StatelessWidget {
 
             const Divider(height: 30),
 
-            // Tổng cộng
             Align(
               alignment: Alignment.centerRight,
               child: Text(
                 "Tổng cộng: ${data['tongTien'] ?? '0'} đ",
                 style: const TextStyle(
-                  color: Color(0xFF00C853), // Màu xanh lá chuẩn
+                  color: Color(0xFF00C853),
                   fontWeight: FontWeight.bold,
                   fontSize: 18,
                 ),
@@ -143,7 +140,6 @@ class HoadonXem extends StatelessWidget {
   }
 }
 
-// Widget phụ trợ cho Cell của Table
 class _Cell extends StatelessWidget {
   final String text;
   final bool isHeader;

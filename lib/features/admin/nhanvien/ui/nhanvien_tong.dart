@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import 'package:taphoa/features/admin/nhanvien/logic/NhanVienLogic.dart';
 import 'package:taphoa/features/admin/nhanvien/ui/nhanvien_sua.dart';
 
 class NhanvienTong extends StatefulWidget {
@@ -10,39 +12,21 @@ class NhanvienTong extends StatefulWidget {
 }
 
 class _NhanvienTongState extends State<NhanvienTong> {
-  final List<Map<String, dynamic>> dsNhanVien = [
-    {
-      "stt": 1,
-      "name": "Nguyễn Văn Minh",
-      "user": "TK00001",
-      "role": "Quản lý",
-      "isLocked": true,
-    },
-    {
-      "stt": 2,
-      "name": "test",
-      "user": "TK00002",
-      "role": "Nhân viên",
-      "isLocked": true,
-    },
-    {
-      "stt": 3,
-      "name": "Nguyễn Văn A",
-      "user": "TK00003",
-      "role": "Nhân viên",
-      "isLocked": false,
-    },
-    {
-      "stt": 4,
-      "name": "Ngô Hữu Nghĩa",
-      "user": "TK00004",
-      "role": "Nhân viên",
-      "isLocked": true,
-    },
-  ];
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<NhanVienLogic>().fetchNhanVien();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final logic = context.watch<NhanVienLogic>();
+
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
@@ -54,27 +38,36 @@ class _NhanvienTongState extends State<NhanvienTong> {
         foregroundColor: Colors.black,
         elevation: 0.5,
         actions: [
-          IconButton(onPressed: () {}, icon: const Icon(Icons.person_outline)),
+          IconButton(
+            onPressed: () => logic.fetchNhanVien(),
+            icon: const Icon(Icons.refresh),
+          ),
         ],
       ),
       body: Column(
         children: [
-          _buildTopActions(),
-
+          _buildTopActions(logic),
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: dsNhanVien.length,
-              itemBuilder: (context, index) =>
-                  _buildEmployeeCard(dsNhanVien[index]),
-            ),
+            child: logic.isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : logic.listNhanVien.isEmpty
+                ? _buildEmptyState()
+                : ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: logic.listNhanVien.length,
+                    itemBuilder: (context, index) => _buildEmployeeCard(
+                      logic.listNhanVien[index],
+                      index + 1,
+                    ),
+                  ),
           ),
+          _buildPagination(logic),
         ],
       ),
     );
   }
 
-  Widget _buildTopActions() {
+  Widget _buildTopActions(NhanVienLogic logic) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -83,6 +76,7 @@ class _NhanvienTongState extends State<NhanvienTong> {
             children: [
               Expanded(
                 child: TextField(
+                  controller: _searchController,
                   decoration: InputDecoration(
                     hintText: "Tìm kiếm nhân viên...",
                     prefixIcon: const Icon(Icons.search),
@@ -98,7 +92,10 @@ class _NhanvienTongState extends State<NhanvienTong> {
               ),
               const SizedBox(width: 8),
               ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  logic.searchNhanVien(_searchController.text);
+                  FocusScope.of(context).unfocus();
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.indigo,
                   shape: RoundedRectangleBorder(
@@ -113,9 +110,7 @@ class _NhanvienTongState extends State<NhanvienTong> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: () {
-                context.push("/quanly/nhanvien/them");
-              },
+              onPressed: () => context.push("/quanly/nhanvien/them"),
               icon: const Icon(Icons.add, color: Colors.white),
               label: const Text(
                 "Thêm nhân viên mới",
@@ -138,7 +133,10 @@ class _NhanvienTongState extends State<NhanvienTong> {
     );
   }
 
-  Widget _buildEmployeeCard(Map<String, dynamic> nv) {
+  Widget _buildEmployeeCard(dynamic nv, int stt) {
+
+    bool isActived = nv.kichHoat;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -156,7 +154,7 @@ class _NhanvienTongState extends State<NhanvienTong> {
               CircleAvatar(
                 backgroundColor: Colors.indigo.shade50,
                 child: Text(
-                  nv['stt'].toString(),
+                  stt.toString(),
                   style: const TextStyle(
                     color: Colors.indigo,
                     fontWeight: FontWeight.bold,
@@ -169,14 +167,14 @@ class _NhanvienTongState extends State<NhanvienTong> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      nv['name'],
+                      nv.maNhanSu.hoTen,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
                     ),
                     Text(
-                      "ID: ${nv['user']} • ${nv['role']}",
+                      "User: ${nv.tenDangNhap} • ${nv.maChucVu.tenChucVu}",
                       style: const TextStyle(color: Colors.grey, fontSize: 13),
                     ),
                   ],
@@ -185,15 +183,13 @@ class _NhanvienTongState extends State<NhanvienTong> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: nv['isLocked']
-                      ? Colors.red.shade50
-                      : Colors.green.shade50,
+                  color: isActived ? Colors.green.shade50 : Colors.red.shade50,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  nv['isLocked'] ? "Đang khoá" : "Hoạt động",
+                  isActived ? "Hoạt động" : "Đang khoá",
                   style: TextStyle(
-                    color: nv['isLocked'] ? Colors.red : Colors.green,
+                    color: isActived ? Colors.green : Colors.red,
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
                   ),
@@ -208,27 +204,107 @@ class _NhanvienTongState extends State<NhanvienTong> {
               _buildActionButton(Icons.edit_outlined, "Sửa", Colors.blue, () {
                 showDialog(
                   context: context,
-                  barrierDismissible: true,
-                  builder: (BuildContext context) {
-                    return NhanvienSua(data: nv);
-                  },
+                  builder: (context) => NhanvienSua(nhanVienId: nv.id),
                 );
               }),
               _buildActionButton(
                 Icons.lock_reset_outlined,
-                "Đổi mã",
+                "Đổi mật khẩu",
                 Colors.orange,
-                () {},
+                () {
+                  _showChangePasswordDialog(context, nv.id);
+                },
               ),
               _buildActionButton(
-                nv['isLocked'] ? Icons.lock_open : Icons.lock_outline,
-                nv['isLocked'] ? "Mở" : "Khoá",
-                nv['isLocked'] ? Colors.green : Colors.red,
-                () {},
+                isActived ? Icons.lock_outline : Icons.lock_open,
+                isActived ? "Khoá" : "Mở",
+                isActived ? Colors.red : Colors.green,
+                () async {
+
+                  bool? confirm = await showDialog<bool>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: Text(
+                        isActived ? "Khóa tài khoản?" : "Mở khóa tài khoản?",
+                      ),
+                      content: Text(
+                        "Bạn có chắc chắn muốn ${isActived ? 'khóa' : 'mở'} tài khoản này không?",
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: const Text("Hủy"),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          child: const Text("Đồng ý"),
+                        ),
+                      ],
+                    ),
+                  );
+
+                  if (confirm == true) {
+                    final logic = context.read<NhanVienLogic>();
+
+                    bool success = await logic.handleToggleStatus(nv.id);
+
+                    if (success && context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            "${isActived ? 'Khóa' : 'Mở'} thành công!",
+                          ),
+                          backgroundColor: isActived
+                              ? Colors.orange
+                              : Colors.green,
+                        ),
+                      );
+                    }
+                  }
+                },
               ),
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPagination(NhanVienLogic logic) {
+    return Container(
+      padding: const EdgeInsets.all(8),
+      color: Colors.white,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          IconButton(
+            onPressed: logic.currentPage > 1
+                ? () => logic.goToPage(logic.currentPage - 1)
+                : null,
+            icon: const Icon(Icons.chevron_left),
+          ),
+          Text(
+            "Trang ${logic.currentPage}",
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          IconButton(
+            onPressed:
+                logic.listNhanVien.length ==
+                    5
+                ? () => logic.goToPage(logic.currentPage + 1)
+                : null,
+            icon: const Icon(Icons.chevron_right),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return const Center(
+      child: Text(
+        "Không tìm thấy nhân viên nào",
+        style: TextStyle(color: Colors.grey),
       ),
     );
   }
@@ -251,6 +327,81 @@ class _NhanvienTongState extends State<NhanvienTong> {
               color: color,
               fontSize: 12,
               fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showChangePasswordDialog(BuildContext context, String nhanVienId) {
+    final TextEditingController passController = TextEditingController();
+    final TextEditingController confirmPassController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text(
+          "Đổi mật khẩu",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: passController,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: "Mật khẩu mới",
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 15),
+              TextFormField(
+                controller: confirmPassController,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: "Xác nhận mật khẩu",
+                  border: OutlineInputBorder(),
+                ),
+                validator: (val) =>
+                    val != passController.text ? "Mật khẩu không khớp" : null,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("HỦY"),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+            onPressed: () async {
+              if (formKey.currentState!.validate()) {
+                final logic = context.read<NhanVienLogic>();
+                bool success = await logic.handleDoiMatKhau(
+                  nhanVienId,
+                  passController.text,
+                );
+
+                if (success && context.mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Đổi mật khẩu thành công!"),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                }
+              }
+            },
+            child: const Text(
+              "CẬP NHẬT",
+              style: TextStyle(color: Colors.white),
             ),
           ),
         ],

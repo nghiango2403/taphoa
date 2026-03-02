@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart'; // Đừng quên thêm intl vào pubspec.yaml
+import 'package:intl/intl.dart';
 import 'package:taphoa/features/admin/khuyenmai/logic/khuyenmai_logic.dart';
 import 'package:taphoa/features/admin/khuyenmai/models/khuyenmai_tong_model.dart';
 import 'package:taphoa/features/admin/khuyenmai/ui/khuyenmai_sua.dart';
@@ -20,7 +20,7 @@ class _KhuyenmaiTongState extends State<KhuyenmaiTong> {
   @override
   void initState() {
     super.initState();
-    // Gọi API ngay khi vào trang
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadData();
     });
@@ -33,12 +33,10 @@ class _KhuyenmaiTongState extends State<KhuyenmaiTong> {
     });
   }
 
-  // Hàm định dạng tiền tệ chuyên nghiệp
   String _formatCurrency(int value) {
     return NumberFormat.currency(locale: 'vi_VN', symbol: 'đ').format(value);
   }
 
-  // Hàm định dạng ngày tháng
   String _formatDate(DateTime date) {
     return DateFormat('dd/MM/yyyy').format(date);
   }
@@ -81,7 +79,6 @@ class _KhuyenmaiTongState extends State<KhuyenmaiTong> {
             ),
           ),
 
-          // Xử lý các trạng thái hiển thị
           Expanded(
             child: logic.isLoading
                 ? const Center(child: CircularProgressIndicator())
@@ -96,7 +93,6 @@ class _KhuyenmaiTongState extends State<KhuyenmaiTong> {
             ),
           ),
 
-          // Thanh phân trang
           _buildMobilePagination(logic),
         ],
       ),
@@ -117,7 +113,7 @@ class _KhuyenmaiTongState extends State<KhuyenmaiTong> {
             leading: CircleAvatar(
               backgroundColor: Colors.indigo.shade50,
               child: Text(
-                "${(index + 1) + (_currentTrang - 1) * _soLuongDong}", // Tính STT theo trang
+                "${(index + 1) + (_currentTrang - 1) * _soLuongDong}",
                 style: const TextStyle(color: Colors.indigo, fontWeight: FontWeight.bold),
               ),
             ),

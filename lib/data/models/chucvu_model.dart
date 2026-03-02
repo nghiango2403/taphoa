@@ -1,21 +1,21 @@
 import 'dart:convert';
 
-HangHoaTongModel hangHoaTongModelFromJson(String str) => HangHoaTongModel.fromJson(json.decode(str));
+ChucVuModel chucVuModelFromJson(String str) => ChucVuModel.fromJson(json.decode(str));
 
-String hangHoaTongModelToJson(HangHoaTongModel data) => json.encode(data.toJson());
+String chucVuModelToJson(ChucVuModel data) => json.encode(data.toJson());
 
-class HangHoaTongModel {
+class ChucVuModel {
   int status;
   String message;
   List<Datum> data;
 
-  HangHoaTongModel({
+  ChucVuModel({
     required this.status,
     required this.message,
     required this.data,
   });
 
-  factory HangHoaTongModel.fromJson(Map<String, dynamic> json) => HangHoaTongModel(
+  factory ChucVuModel.fromJson(Map<String, dynamic> json) => ChucVuModel(
     status: json["status"],
     message: json["message"],
     data: List<Datum>.from(json["data"].map((x) => Datum.fromJson(x))),
@@ -30,32 +30,24 @@ class HangHoaTongModel {
 
 class Datum {
   String id;
-  String ten;
-  int gia;
-  int soLuong;
+  String tenChucVu;
   int v;
 
   Datum({
     required this.id,
-    required this.ten,
-    required this.gia,
-    required this.soLuong,
+    required this.tenChucVu,
     required this.v,
   });
 
   factory Datum.fromJson(Map<String, dynamic> json) => Datum(
     id: json["_id"],
-    ten: json["Ten"],
-    gia: json["Gia"],
-    soLuong: json["SoLuong"],
+    tenChucVu: json["TenChucVu"],
     v: json["__v"],
   );
 
   Map<String, dynamic> toJson() => {
     "_id": id,
-    "Ten": ten,
-    "Gia": gia,
-    "SoLuong": soLuong,
+    "TenChucVu": tenChucVu,
     "__v": v,
   };
 }

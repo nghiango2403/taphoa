@@ -1,7 +1,3 @@
-// To parse this JSON data, do
-//
-//     final hangHoaSuaModel = hangHoaSuaModelFromJson(jsonString);
-
 import 'dart:convert';
 
 HangHoaSuaModel hangHoaSuaModelFromJson(String str) => HangHoaSuaModel.fromJson(json.decode(str));

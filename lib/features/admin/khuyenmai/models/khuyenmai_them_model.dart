@@ -1,7 +1,3 @@
-// To parse this JSON data, do
-//
-//     final khuyenMaiThemModel = khuyenMaiThemModelFromJson(jsonString);
-
 import 'dart:convert';
 
 KhuyenMaiThemModel khuyenMaiThemModelFromJson(String str) => KhuyenMaiThemModel.fromJson(json.decode(str));

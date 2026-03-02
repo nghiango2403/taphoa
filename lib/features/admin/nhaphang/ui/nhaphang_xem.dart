@@ -1,203 +1,106 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:taphoa/features/admin/nhaphang/logic/nhaphang_logic.dart';
 
-class NhaphangXem extends StatelessWidget {
-  final String phieuNhap;
+class NhaphangXem extends StatefulWidget {
+  final String phieuId;
+  const NhaphangXem({super.key, required this.phieuId});
 
-  const NhaphangXem({super.key, required this.phieuNhap});
+  @override
+  State<NhaphangXem> createState() => _NhaphangXemState();
+}
+
+class _NhaphangXemState extends State<NhaphangXem> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<NhapHangLogic>().fetchChiTietPhieu(widget.phieuId);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    final List<Map<String, dynamic>> items = [
-      {
-        "ten": "Áo Thun",
-        "giaBan": "150.000",
-        "soLuong": 1,
-        "giaNhap": "150.000",
-      },
-      {"ten": "Muối", "giaBan": "3.000", "soLuong": 1, "giaNhap": "2.000"},
-    ];
+    final currencyFormat = NumberFormat("#,###", "vi_VN");
 
-    return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      insetPadding: const EdgeInsets.all(16),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  "Chi tiết phiếu nhập",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close, color: Colors.grey),
-                ),
-              ],
-            ),
-            const Divider(),
+    return AlertDialog(
+      title: const Text(
+        "Chi tiết phiếu nhập",
+        style: TextStyle(fontWeight: FontWeight.bold),
+      ),
+      content: Consumer<NhapHangLogic>(
+        builder: (context, logic, child) {
+          if (logic.isLoading) {
+            return const SizedBox(
+              height: 200,
+              child: Center(child: CircularProgressIndicator()),
+            );
+          }
 
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-              decoration: BoxDecoration(
-                color: Colors.grey[100],
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Row(
+          if (logic.listChiTiet.isEmpty) {
+            return const Text("Không có dữ liệu mặt hàng.");
+          }
+
+          return SizedBox(
+            width: double.maxFinite,
+            child: SingleChildScrollView(
+              child: Table(
+                border: TableBorder.all(color: Colors.grey.shade300),
+                columnWidths: const {
+                  0: FlexColumnWidth(3),
+                  1: IntrinsicColumnWidth(),
+                  2: FlexColumnWidth(2),
+                },
                 children: [
-                  Expanded(
-                    flex: 3,
-                    child: Text(
-                      "Tên hàng",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 2,
-                    child: Text(
-                      "Giá mỗi món",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 1,
-                    child: Text(
-                      "SL",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 2,
-                    child: Text(
-                      "Giá nhập",
-                      textAlign: TextAlign.right,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
+                  _buildHeaderRow(),
+                  ...logic.listChiTiet.map(
+                    (item) => TableRow(
+                      children: [
+                        _buildCell(item.maHangHoa.ten),
+                        _buildCell(item.soLuong.toString(), center: true),
+                        _buildCell(
+                          currencyFormat.format(item.tienHang),
+                          bold: true,
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
             ),
+          );
+        },
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text("Đóng"),
+        ),
+      ],
+    );
+  }
 
-            ConstrainedBox(
-              constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.4,
-              ),
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: items.length,
-                itemBuilder: (context, index) {
-                  final item = items[index];
-                  return Container(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 12,
-                      horizontal: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(color: Colors.grey.shade200),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          flex: 3,
-                          child: Text(
-                            item['ten'],
-                            style: const TextStyle(fontSize: 13),
-                          ),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: Text(
-                            item['giaBan'],
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(fontSize: 13),
-                          ),
-                        ),
-                        Expanded(
-                          flex: 1,
-                          child: Text(
-                            item['soLuong'].toString(),
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(fontSize: 13),
-                          ),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: Text(
-                            item['giaNhap'],
-                            textAlign: TextAlign.right,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
+  TableRow _buildHeaderRow() {
+    return TableRow(
+      decoration: BoxDecoration(color: Colors.grey.shade100),
+      children: [
+        _buildCell("Tên hàng", bold: true),
+        _buildCell("SL", bold: true, center: true),
+        _buildCell("Thành tiền", bold: true),
+      ],
+    );
+  }
 
-            const SizedBox(height: 20),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                const Text(
-                  "Tổng cộng: ",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  "152.000 đ",
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.green,
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 20),
-
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton(
-                onPressed: () => Navigator.pop(context),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: const Text(
-                  "Đóng",
-                  style: TextStyle(color: Colors.black87),
-                ),
-              ),
-            ),
-          ],
+  Widget _buildCell(String text, {bool bold = false, bool center = false}) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Text(
+        text,
+        textAlign: center ? TextAlign.center : TextAlign.start,
+        style: TextStyle(
+          fontWeight: bold ? FontWeight.bold : FontWeight.normal,
+          fontSize: 13,
         ),
       ),
     );

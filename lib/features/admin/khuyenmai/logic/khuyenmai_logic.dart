@@ -11,7 +11,6 @@ class KhuyenMaiLogic extends ChangeNotifier {
   bool _isLoading = false;
   String? errorMessage;
 
-  // Getters
   bool get isLoading => _isLoading;
   List<Danhsach> get listKhuyenMai => _khuyenMaiData?.data.danhsach ?? [];
   int get tongSoTrang => _khuyenMaiData?.data.sotrang ?? 1;

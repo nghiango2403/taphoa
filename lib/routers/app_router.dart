@@ -50,7 +50,7 @@ class AppRouter {
       routes: [
         GoRoute(
           path:
-              '/login', // Thay vì dùng RouterNames.login, gõ trực tiếp để đảm bảo có dấu /
+              '/login',
           parentNavigatorKey: _rootNavigatorKey,
           builder: (context, state) => const LoginScreen(),
         ),

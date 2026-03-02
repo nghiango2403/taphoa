@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:taphoa/features/admin/nhaphang/logic/nhaphang_logic.dart';
 import 'package:taphoa/features/admin/nhaphang/ui/nhaphang_xem.dart';
 
 class NhaphangTong extends StatefulWidget {
@@ -10,13 +13,73 @@ class NhaphangTong extends StatefulWidget {
 }
 
 class _NhaphangTongState extends State<NhaphangTong> {
-  final List<String> danhSachNhap = List.generate(
-    20,
-    (index) => "09:09:47 23/8/2025",
+
+  final TextEditingController _thangController = TextEditingController(
+    text: DateTime.now().month.toString(),
+  );
+  final TextEditingController _namController = TextEditingController(
+    text: DateTime.now().year.toString(),
   );
 
   @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) => _onSearch(page: 1));
+  }
+
+  void _onSearch({int page = 1}) {
+    context.read<NhapHangLogic>().fetchPhieuNhap(
+      trang: page,
+      thang: int.tryParse(_thangController.text) ?? DateTime.now().month,
+      nam: int.tryParse(_namController.text) ?? DateTime.now().year,
+    );
+  }
+
+  void _confirmDelete(BuildContext context, String id) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Xác nhận xóa"),
+        content: const Text(
+          "Bạn có chắc chắn muốn xóa phiếu nhập này không? Hành động này không thể hoàn tác.",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Hủy", style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () async {
+              Navigator.pop(context);
+
+              final logic = context.read<NhapHangLogic>();
+              bool success = await logic.handleXoaPhieu(id);
+
+              if (success && mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Đã xóa phiếu nhập thành công")),
+                );
+              } else if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(logic.errorMessage ?? "Lỗi xóa phiếu"),
+                  ),
+                );
+              }
+            },
+            child: const Text("Xóa", style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final logic = context.watch<NhapHangLogic>();
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
@@ -28,96 +91,128 @@ class _NhaphangTongState extends State<NhaphangTong> {
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
       ),
-      body: GestureDetector(
-        onTap: () => FocusScope.of(context).unfocus(),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              _buildHeaderActions(context),
-              const SizedBox(height: 20),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            _buildHeaderActions(),
+            const SizedBox(height: 20),
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)],
+                ),
+                child: Column(
+                  children: [
+                    _buildTableHeader(),
+                    const Divider(height: 1),
+                    Expanded(
+                      child: logic.isLoading
+                          ? const Center(child: CircularProgressIndicator())
+                          : ListView.separated(
+                              itemCount: logic.listPhieu.length,
+                              separatorBuilder: (context, index) =>
+                                  const Divider(height: 1),
+                              itemBuilder: (context, index) {
+                                final item = logic.listPhieu[index];
+                                return _buildTableRow(
+                                  stt:
+                                      (index + 1 + (logic.currentPage - 1) * 10)
+                                          .toString(),
+                                  thoiGian: DateFormat(
+                                    'HH:mm:ss dd/MM/yyyy',
+                                  ).format(item.thoiGianNhap.toLocal()),
+                                  id: item.id,
+                                );
+                              },
+                            ),
+                    ),
 
-              Expanded(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.03),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      _buildTableHeader(),
-                      const Divider(height: 1),
-                      Expanded(
-                        child: ListView.separated(
-                          itemCount: danhSachNhap.length,
-                          separatorBuilder: (context, index) =>
-                              const Divider(height: 1),
-                          itemBuilder: (context, index) {
-                            return _buildTableRow(
-                              stt: (index + 1).toString(),
-                              thoiGian: danhSachNhap[index],
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
+                    _buildPaginationBar(logic),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildHeaderActions(BuildContext context) {
+  Widget _buildPaginationBar(NhapHangLogic logic) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          IconButton(
+            onPressed: logic.currentPage > 1
+                ? () => _onSearch(page: logic.currentPage - 1)
+                : null,
+            icon: const Icon(Icons.chevron_left),
+          ),
+          Text(
+            "Trang ${logic.currentPage} / ${logic.totalPage}",
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          IconButton(
+            onPressed: logic.currentPage < logic.totalPage
+                ? () => _onSearch(page: logic.currentPage + 1)
+                : null,
+            icon: const Icon(Icons.chevron_right),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeaderActions() {
     return Row(
       children: [
-        Expanded(child: _buildSmallTextField("Tháng", "8")),
+        Expanded(child: _buildSmallTextField("Tháng", _thangController)),
         const SizedBox(width: 10),
-        Expanded(child: _buildSmallTextField("Năm", "2025")),
+        Expanded(child: _buildSmallTextField("Năm", _namController)),
         const SizedBox(width: 10),
         ElevatedButton(
-          onPressed: () {},
+          onPressed: () => _onSearch(page: 1),
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.indigo,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
           ),
           child: const Text("Tìm", style: TextStyle(color: Colors.white)),
         ),
         const SizedBox(width: 10),
-        ElevatedButton.icon(
-          onPressed: () => context.go("/quanly/nhaphang/them"),
-          icon: const Icon(Icons.add, size: 18, color: Colors.white),
-          label: const Text("Thêm mới", style: TextStyle(color: Colors.white)),
+        ElevatedButton(
+          onPressed: () => {context.push("/quanly/nhaphang/them")},
+
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.green[600],
+            backgroundColor: Colors.green,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 15),
           ),
+          child: const Text("Thêm", style: TextStyle(color: Colors.white)),
         ),
       ],
     );
   }
 
-  Widget _buildSmallTextField(String label, String hint) {
+  Widget _buildSmallTextField(String label, TextEditingController controller) {
     return TextField(
+      controller: controller,
+      keyboardType: TextInputType.number,
       decoration: InputDecoration(
         labelText: label,
-        hintText: hint,
         isDense: true,
         filled: true,
         fillColor: Colors.white,
@@ -158,7 +253,11 @@ class _NhaphangTongState extends State<NhaphangTong> {
     );
   }
 
-  Widget _buildTableRow({required String stt, required String thoiGian}) {
+  Widget _buildTableRow({
+    required String stt,
+    required String thoiGian,
+    required String id,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
       child: Row(
@@ -176,11 +275,13 @@ class _NhaphangTongState extends State<NhaphangTong> {
                 _buildTextActionButton("Xem", Colors.blue, () {
                   showDialog(
                     context: context,
-                    builder: (context) => NhaphangXem(phieuNhap: thoiGian),
+                    builder: (context) => NhaphangXem(phieuId: id),
                   );
                 }),
                 const VerticalDivider(width: 10),
-                _buildTextActionButton("Xóa", Colors.red, () {}),
+                _buildTextActionButton("Xóa", Colors.red, () {
+                  _confirmDelete(context, id);
+                }),
               ],
             ),
           ),
@@ -190,21 +291,16 @@ class _NhaphangTongState extends State<NhaphangTong> {
   }
 
   Widget _buildTextActionButton(String label, Color color, VoidCallback onTap) {
-    return Flexible(
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              label,
-              style: TextStyle(
-                color: color,
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
-              ),
-            ),
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: color,
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
           ),
         ),
       ),

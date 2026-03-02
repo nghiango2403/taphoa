@@ -1,175 +1,190 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:taphoa/features/admin/nhanvien/logic/NhanVienLogic.dart';
 
 class NhanvienSua extends StatefulWidget {
-  final Map<String, dynamic> data;
+  final String nhanVienId;
 
-  const NhanvienSua({super.key, required this.data});
+  const NhanvienSua({super.key, required this.nhanVienId});
 
   @override
   State<NhanvienSua> createState() => _NhanvienSuaState();
 }
 
 class _NhanvienSuaState extends State<NhanvienSua> {
-  late TextEditingController _hoTenController;
-  late TextEditingController _sdtController;
-  late TextEditingController _emailController;
-  late TextEditingController _ngaySinhController;
-  late TextEditingController _diaChiController;
 
+  final TextEditingController _hoTenController = TextEditingController();
+  final TextEditingController _sdtController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _diaChiController = TextEditingController();
+  final TextEditingController _ngaySinhController = TextEditingController();
   String? _gioiTinh;
-  String? _chucVu;
-  final List<String> _listChucVu = ['Quản lý', 'Nhân viên'];
 
   @override
   void initState() {
     super.initState();
-    _hoTenController = TextEditingController(text: widget.data['name']);
-    _sdtController = TextEditingController(
-      text: widget.data['sdt'] ?? "0912345678",
-    );
-    _emailController = TextEditingController(
-      text: widget.data['email'] ?? "nguyenvana@example.com",
-    );
-    _ngaySinhController = TextEditingController(
-      text: widget.data['ngaySinh'] ?? "15/05/1990",
-    );
-    _diaChiController = TextEditingController(
-      text: widget.data['diaChi'] ?? "123 Đường Lê Lợi",
-    );
-    _gioiTinh = widget.data['gioiTinh'] ?? 'Nữ';
-    _chucVu = widget.data['role'] ?? 'Quản lý';
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
+    });
+  }
+
+  void _loadData() async {
+    final logic = context.read<NhanVienLogic>();
+    bool success = await logic.fetchChiTietNhanVien(widget.nhanVienId);
+
+    if (success && logic.nhanVienChiTiet != null) {
+      final chiTiet = logic.nhanVienChiTiet!.data.maNhanSu;
+      setState(() {
+        _hoTenController.text = chiTiet.hoTen;
+        _sdtController.text = chiTiet.sdt;
+        _emailController.text = chiTiet.email;
+        _diaChiController.text = chiTiet.diaChi;
+
+        _ngaySinhController.text = chiTiet.ngaySinh.toIso8601String().split(
+          'T',
+        )[0];
+        _gioiTinh = chiTiet.gioiTinh;
+      });
+    }
+  }
+
+  void _handleUpdate() async {
+    final logic = context.read<NhanVienLogic>();
+
+    final Map<String, dynamic> updateData = {
+      "MaNhanSu": logic.nhanVienChiTiet?.data.maNhanSu.id,
+      "HoTen": _hoTenController.text.trim(),
+      "SDT": _sdtController.text.trim(),
+      "Email": _emailController.text.trim(),
+      "NgaySinh": _ngaySinhController.text.trim(),
+      "DiaChi": _diaChiController.text.trim(),
+      "GioiTinh": _gioiTinh,
+    };
+
+    bool success = await logic.updateNhanVien(updateData);
+
+    if (success && mounted) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Cập nhật thành công!"),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      insetPadding: const EdgeInsets.all(16),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Consumer<NhanVienLogic>(
+        builder: (context, logic, child) {
+
+          if (logic.isLoading && logic.nhanVienChiTiet == null) {
+            return const SizedBox(
+              height: 200,
+              child: Center(child: CircularProgressIndicator()),
+            );
+          }
+
+          return Padding(
+            padding: const EdgeInsets.all(20),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    "Sửa Thông Tin Nhân Viên",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  _buildHeader(),
+                  const Divider(),
+
+                  _buildInputLabel("Họ và Tên"),
+                  _buildTextField(_hoTenController, "Họ tên"),
+
+                  _buildInputLabel("Số điện thoại"),
+                  _buildTextField(
+                    _sdtController,
+                    "Số điện thoại",
+                    keyboardType: TextInputType.phone,
                   ),
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close),
+
+                  _buildInputLabel("Email"),
+                  _buildTextField(_emailController, "Email"),
+
+                  _buildInputLabel("Ngày sinh"),
+                  _buildTextField(_ngaySinhController, "YYYY-MM-DD"),
+
+                  _buildInputLabel("Địa chỉ"),
+                  _buildTextField(_diaChiController, "Địa chỉ"),
+
+                  _buildInputLabel("Giới Tính"),
+                  Row(
+                    children: [
+                      _buildRadioGioiTinh("Nam", "1"),
+                      _buildRadioGioiTinh("Nữ", "0"),
+                    ],
                   ),
+
+                  const SizedBox(height: 20),
+
+                  logic.isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : _buildSaveButton(),
                 ],
               ),
-              const Divider(),
-              const SizedBox(height: 12),
+            ),
+          );
+        },
+      ),
+    );
+  }
 
-              _buildInputLabel("Họ và Tên"),
-              _buildTextField(_hoTenController, "Nhập họ tên..."),
-
-              const SizedBox(height: 12),
-              _buildInputLabel("Số Điện Thoại"),
-              _buildTextField(_sdtController, "09...", isNumber: true),
-
-              const SizedBox(height: 12),
-              _buildInputLabel("Email"),
-              _buildTextField(_emailController, "example@mail.com"),
-
-              const SizedBox(height: 12),
-              _buildInputLabel("Ngày Sinh"),
-              _buildDateField(_ngaySinhController),
-
-              const SizedBox(height: 12),
-              _buildInputLabel("Địa Chỉ"),
-              _buildTextField(_diaChiController, "Địa chỉ..."),
-
-              const SizedBox(height: 12),
-              _buildInputLabel("Giới Tính"),
-              Row(
-                children: [
-                  _buildRadioGioiTinh("Nam"),
-                  _buildRadioGioiTinh("Nữ"),
-                  _buildRadioGioiTinh("Khác"),
-                ],
-              ),
-
-              const SizedBox(height: 12),
-              _buildInputLabel("Chức Vụ"),
-              _buildDropdownChucVu(),
-
-              const SizedBox(height: 24),
-              _buildSaveButton(),
-            ],
-          ),
+  Widget _buildHeader() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        const Text(
+          "Sửa Nhân Viên",
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
-      ),
+        IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.close),
+        ),
+      ],
     );
   }
 
-  Widget _buildInputLabel(String label) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6.0),
-      child: Text(
-        label,
-        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-      ),
-    );
-  }
+  Widget _buildInputLabel(String label) => Padding(
+    padding: const EdgeInsets.only(top: 12, bottom: 4),
+    child: Text(
+      label,
+      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+    ),
+  );
 
   Widget _buildTextField(
     TextEditingController controller,
     String hint, {
-    bool isNumber = false,
+    TextInputType? keyboardType,
   }) {
     return TextField(
       controller: controller,
-      keyboardType: isNumber ? TextInputType.phone : TextInputType.text,
+      keyboardType: keyboardType,
       decoration: InputDecoration(
         hintText: hint,
-        isDense: true,
         filled: true,
-        fillColor: Colors.grey[50],
+        fillColor: Colors.grey[100],
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: Colors.grey.shade300),
+          borderSide: BorderSide.none,
         ),
       ),
     );
   }
 
-  Widget _buildDateField(TextEditingController controller) {
-    return TextField(
-      controller: controller,
-      readOnly: true,
-      onTap: () async {
-        DateTime? picked = await showDatePicker(
-          context: context,
-          initialDate: DateTime(1990, 5, 15),
-          firstDate: DateTime(1950),
-          lastDate: DateTime.now(),
-        );
-        if (picked != null) {
-          setState(
-            () => controller.text =
-                "${picked.day}/${picked.month}/${picked.year}",
-          );
-        }
-      },
-      decoration: InputDecoration(
-        suffixIcon: const Icon(Icons.calendar_today, size: 18),
-        isDense: true,
-        filled: true,
-        fillColor: Colors.grey[50],
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-    );
-  }
-
-  Widget _buildRadioGioiTinh(String value) {
+  Widget _buildRadioGioiTinh(String label, String value) {
     return Row(
       children: [
         Radio<String>(
@@ -177,29 +192,8 @@ class _NhanvienSuaState extends State<NhanvienSua> {
           groupValue: _gioiTinh,
           onChanged: (val) => setState(() => _gioiTinh = val),
         ),
-        Text(value, style: const TextStyle(fontSize: 13)),
+        Text(label),
       ],
-    );
-  }
-
-  Widget _buildDropdownChucVu() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: _chucVu,
-          isExpanded: true,
-          items: _listChucVu
-              .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-              .toList(),
-          onChanged: (val) => setState(() => _chucVu = val),
-        ),
-      ),
     );
   }
 
@@ -207,15 +201,15 @@ class _NhanvienSuaState extends State<NhanvienSua> {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: () => Navigator.pop(context),
+        onPressed: _handleUpdate,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFFFFEAA7),
+          backgroundColor: const Color(0xFF6C5CE7),
           padding: const EdgeInsets.symmetric(vertical: 14),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
         child: const Text(
-          "Lưu Thay Đổi",
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          "CẬP NHẬT",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
       ),
     );

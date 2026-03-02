@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:taphoa/features/admin/hoadon/ui/hoadon_xem.dart';
-// Giả sử các file này nằm trong project của bạn
-// import 'package:taphoa/features/admin/hoadon/ui/hoadon_them.dart';
-// import 'package:taphoa/features/admin/hoadon/ui/hoadon_xem.dart';
 
 class HoaDonTong extends StatefulWidget {
   const HoaDonTong({super.key});
@@ -43,7 +40,7 @@ class _HoaDonTongState extends State<HoaDonTong> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA), // Màu nền nhẹ cho UI hiện đại
+      backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
         title: const Text(
           "Quản lý hoá đơn",
@@ -72,7 +69,6 @@ class _HoaDonTongState extends State<HoaDonTong> {
     );
   }
 
-  // --- WIDGET ITEM HÓA ĐƠN (CARD) ---
   Widget _buildHoaDonItem(Map<String, dynamic> hd) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -150,8 +146,6 @@ class _HoaDonTongState extends State<HoaDonTong> {
       ),
     );
   }
-
-  // --- CÁC THÀNH PHẦN PHỤ TRỢ ---
 
   Widget _rowDetail(
     IconData icon,
@@ -246,8 +240,8 @@ class _HoaDonTongState extends State<HoaDonTong> {
               context.push("/quanly/hoadon/them");
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green, // Màu nền xanh lá
-              foregroundColor: Colors.white, // Màu chữ và icon
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -291,7 +285,7 @@ class _HoaDonTongState extends State<HoaDonTong> {
   }
 
   void _openDetailDialog(Map<String, dynamic> hd) {
-    // Gọi màn hình HoadonXem của bạn
+
     showDialog(
       context: context,
       builder: (context) => HoadonXem(data: {...hd}),

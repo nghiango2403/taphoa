@@ -22,7 +22,7 @@ class _AccountGetState extends State<AccountGet> {
   final _gioitinhcontroller = TextEditingController();
   @override
   void initState() {
-    // TODO: implement initState
+
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       fetchProfile();
@@ -129,19 +129,18 @@ class _AccountGetState extends State<AccountGet> {
                 SizedBox(height: 10),
                 const SizedBox(height: 10),
 
-                // 1. TRẠNG THÁI ĐANG TẢI
                 if (accountLogic.isLoading)
                   const _LoadingView()
-                // 2. TRẠNG THÁI LỖI (Thêm phần này)
+
                 else if (accountLogic.errorMessage != null)
                   _ErrorView(
                     message: accountLogic.errorMessage!,
                     onRetry: () => accountLogic.fetchProfile(),
                   )
-                // 3. TRẠNG THÁI HIỂN THỊ DATA
+
                 else if (info != null)
                   _ProfileForm(info: info)
-                // 4. TRƯỜNG HỢP TRỐNG (Nếu data null và không lỗi)
+
                 else
                   const Text("Không có dữ liệu hiển thị."),
               ],
@@ -203,7 +202,7 @@ class _ErrorView extends StatelessWidget {
 }
 
 class _ProfileForm extends StatelessWidget {
-  final dynamic info; // Truyền Model Data vào đây
+  final dynamic info;
 
   const _ProfileForm({required this.info});
 
@@ -222,7 +221,7 @@ class _ProfileForm extends StatelessWidget {
         _buildField(
           "Giới tính",
           info.gioiTinh == "0" ? "Nam" : "Nữ",
-        ), // Ví dụ logic hiển thị
+        ),
       ],
     );
   }
@@ -231,14 +230,14 @@ class _ProfileForm extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: TextFormField(
-        // Dùng TextFormField hoặc TextField với initialValue
+
         initialValue: value,
-        key: Key(value), // Thêm key để Flutter biết cần vẽ lại khi value đổi
+        key: Key(value),
         decoration: InputDecoration(
           border: const OutlineInputBorder(),
           labelText: label,
         ),
-        readOnly: true, // Vì đây là màn hình xem thông tin
+        readOnly: true,
         enabled: false,
       ),
     );

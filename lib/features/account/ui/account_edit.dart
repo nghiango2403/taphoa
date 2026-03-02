@@ -19,13 +19,12 @@ class _AccountEditState extends State<AccountEdit> {
   final _ngaysinhController = TextEditingController();
   final _diachiController = TextEditingController();
 
-  // Biến lưu giá trị giới tính đã chọn
   String? _selectedGioiTinh;
 
   @override
   void initState() {
     super.initState();
-    // Sử dụng WidgetsBinding để đảm bảo context đã sẵn sàng sau khi frame đầu tiên được dựng
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       fetchProfile();
     });
@@ -46,7 +45,7 @@ class _AccountEditState extends State<AccountEdit> {
       if (rawGioiTinh == "0" || rawGioiTinh == "1") {
         _selectedGioiTinh = rawGioiTinh;
       } else {
-        _selectedGioiTinh = null; // Trả về null để tránh crash Dropdown
+        _selectedGioiTinh = null;
       }
 
       setState(() {});
@@ -84,7 +83,7 @@ class _AccountEditState extends State<AccountEdit> {
         "NgaySinh": birthDate.toIso8601String(),
         "DiaChi": _diachiController.text.trim(),
         "GioiTinh":
-            _selectedGioiTinh ?? "0", // Nếu chưa chọn thì mặc định gửi 0 (Nam)
+            _selectedGioiTinh ?? "0",
       };
 
       await accountLogic.updateProfile(data);
@@ -129,7 +128,6 @@ class _AccountEditState extends State<AccountEdit> {
             _buildTextField("Số điện thoại", _sdtController, Icons.phone),
             const SizedBox(height: 15),
 
-            // DROP-DOWN GIỚI TÍNH
             DropdownButtonFormField<String>(
               value: _selectedGioiTinh,
               decoration: const InputDecoration(

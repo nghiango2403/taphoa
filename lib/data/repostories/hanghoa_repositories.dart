@@ -2,8 +2,6 @@ import 'package:dio/dio.dart';
 import 'package:taphoa/core/network/api_endpoints.dart';
 import 'package:taphoa/features/admin/hanghoa/models/hanghoa_sua_model.dart';
 import 'package:taphoa/features/admin/hanghoa/models/hanghoa_tong_model.dart';
-import 'package:taphoa/features/admin/khuyenmai/models/khuyenmai_sua_model.dart';
-import 'package:taphoa/features/admin/khuyenmai/models/khuyenmai_them_model.dart';
 
 class HangHoaRepository {
   final Dio _dio;
@@ -42,7 +40,7 @@ class HangHoaRepository {
   }
   Future<HangHoaSuaModel> suaHangHoa(String id, Map<String, dynamic> data) async {
     try {
-      // Backend thường yêu cầu truyền Ma và các thông tin qua Query Params
+
       final Map<String, dynamic> queryParams = {
         "MaHangHoa": id,
         "Ten": data["Ten"],
@@ -50,7 +48,7 @@ class HangHoaRepository {
       };
 
       final response = await _dio.put(
-        Endpoints.capnhathanghoa, // Đảm bảo đã định nghĩa endpoint này
+        Endpoints.capnhathanghoa,
         queryParameters: queryParams,
       );
 

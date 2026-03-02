@@ -18,10 +18,9 @@ class _HanghoaSuaState extends State<HanghoaSua> {
   @override
   void initState() {
     super.initState();
-    // Khởi tạo dữ liệu an toàn từ widget.data
+
     _tenHangController = TextEditingController(text: widget.data['Ten']?.toString() ?? "");
 
-    // Chỉ lấy Giá, loại bỏ các ký tự không phải số
     String giaRaw = widget.data['Gia']?.toString() ?? "0";
     _giaController = TextEditingController(text: giaRaw.replaceAll(RegExp(r'[^0-9]'), ''));
   }
@@ -35,7 +34,6 @@ class _HanghoaSuaState extends State<HanghoaSua> {
       return;
     }
 
-    // Chỉ chuẩn bị Tên và Giá để gửi đi
     final Map<String, dynamic> updateData = {
       "Ten": _tenHangController.text.trim(),
       "Gia": int.tryParse(_giaController.text) ?? 0,

@@ -12,7 +12,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  // Sử dụng controller để lấy dữ liệu nhập vào
+
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
@@ -25,7 +25,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Lắng nghe AuthLogic
+
     final authLogic = context.watch<AuthLogic>();
 
     return Scaffold(
@@ -47,7 +47,6 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 60),
 
-              // Tên đăng nhập
               TextField(
                 controller: _usernameController,
                 decoration: const InputDecoration(
@@ -60,10 +59,9 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 20),
 
-              // Mật khẩu
               TextField(
                 controller: _passwordController,
-                obscureText: authLogic.isObscured, // Lấy từ Logic
+                obscureText: authLogic.isObscured,
                 decoration: InputDecoration(
                   labelText: "Mật khẩu",
                   border: const OutlineInputBorder(),
@@ -72,7 +70,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   fillColor: Colors.white,
                   suffixIcon: IconButton(
                     onPressed: () =>
-                        authLogic.toggleObscure(), // Gọi hàm từ Logic
+                        authLogic.toggleObscure(),
                     icon: Icon(
                       authLogic.isObscured
                           ? Icons.visibility
@@ -82,7 +80,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
 
-              // Hiển thị lỗi nếu có
               if (authLogic.errorMessage != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 10),
@@ -94,7 +91,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
               const SizedBox(height: 30),
 
-              // Nút đăng nhập
               SizedBox(
                 width: double.infinity,
                 height: 50,
@@ -107,7 +103,6 @@ class _LoginScreenState extends State<LoginScreen> {
                             _passwordController.text,
                           );
 
-                          // Sau khi xong, kiểm tra nếu có user thì log ra thông tin
                           if (authLogic.user != null) {
                             final user = authLogic.user!.data.thongTin;
                             print("--- ĐĂNG NHẬP THÀNH CÔNG ---");
@@ -117,7 +112,6 @@ class _LoginScreenState extends State<LoginScreen> {
                               "Access Token: ${authLogic.user!.data.accessToken}",
                             );
 
-                            // Hiển thị thông báo nhanh
                             if (mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(

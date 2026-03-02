@@ -21,5 +21,18 @@ class Endpoints {
   static const String timhanghoa = "/timhanghoa";
   static const String layhanghoa = "/layhanghoa";
   static const String capnhathanghoa = "/capnhathanghoa";
-  // static const String updateStaff = (int id) => "/staff/update/$id"; // Endpoint dạng function cho ID
+  static const String timnhanvien = "/timnhanvien";
+  static const String laydanhsachnhanvien = "/laydanhsachnhanvien";
+  static const String themnhanvien = "/themnhanvien";
+  static const String laythongtinchitietnhanvien =
+      "/laythongtinchitietcuanhanvien";
+  static const String doithongtinnhanvien = "/doithongtinnhanvien";
+  static const String doimatkhaunhanvien = "/doimatkhaunhanvien";
+  static const String mohoackhoataikhoan = "/mohoackhoataikhoan";
+  static const String laychucvu = "/laychucvu";
+  static const String taophieunhaphang = "/taophieunhaphang";
+  static const String layphieunhaphang = "/layphieunhaphang";
+  static const String laychitietphieunhaphang = "/laychitietphieunhaphang";
+  static const String xoaphieunhaphang = "/xoaphieunhaphang";
+
 }

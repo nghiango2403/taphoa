@@ -27,10 +27,8 @@ class _KhuyenmaiSuaState extends State<KhuyenmaiSua> {
   void initState() {
     super.initState();
 
-    // Xử lý dữ liệu đầu vào an toàn (Null Safety & Type Safety)
     _tenController = TextEditingController(text: widget.data['TenKhuyenMai']?.toString() ?? "");
 
-    // Xử lý ngày tháng
     _startDate = widget.data['NgayBatDau'] != null ? DateTime.tryParse(widget.data['NgayBatDau'].toString()) : null;
     _endDate = widget.data['NgayKetThuc'] != null ? DateTime.tryParse(widget.data['NgayKetThuc'].toString()) : null;
 
@@ -41,7 +39,6 @@ class _KhuyenmaiSuaState extends State<KhuyenmaiSua> {
         text: _endDate != null ? _displayFormat.format(_endDate!) : ""
     );
 
-    // Xử lý số tiền (Tránh lỗi replaceAll trên null hoặc int)
     String tienRaw = widget.data['TienKhuyenMai']?.toString() ?? "0";
     String dieuKienRaw = widget.data['DieuKien']?.toString() ?? "0";
 
@@ -78,7 +75,6 @@ class _KhuyenmaiSuaState extends State<KhuyenmaiSua> {
       return;
     }
 
-    // Prepare data
     final Map<String, dynamic> updateData = {
       "TenKhuyenMai": _tenController.text.trim(),
       "NgayBatDau": _startDate?.toIso8601String(),
@@ -92,7 +88,7 @@ class _KhuyenmaiSuaState extends State<KhuyenmaiSua> {
       updateData,
       onSuccess: () {
         _showSnackBar("Cập nhật thành công!", isError: false);
-        Navigator.pop(context); // Đóng Dialog
+        Navigator.pop(context);
       },
     );
 

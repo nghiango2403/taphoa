@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:taphoa/features/admin/khuyenmai/logic/khuyenmai_logic.dart'; // Thay đổi path cho đúng project của bạn
+import 'package:taphoa/features/admin/khuyenmai/logic/khuyenmai_logic.dart';
 
 class KhuyenmaiThem extends StatefulWidget {
   const KhuyenmaiThem({super.key});
@@ -19,7 +19,6 @@ class _KhuyenmaiThemState extends State<KhuyenmaiThem> {
   DateTime? _startDate;
   DateTime? _endDate;
 
-  // Hàm chọn ngày và lưu vào biến DateTime
   Future<void> _selectDate(
       BuildContext context,
       TextEditingController controller,
@@ -43,11 +42,9 @@ class _KhuyenmaiThemState extends State<KhuyenmaiThem> {
     }
   }
 
-  // Hàm xử lý khi nhấn Lưu
   void _handleSave() async {
     final logic = context.read<KhuyenMaiLogic>();
 
-    // 1. Validation cơ bản
     if (_tenController.text.isEmpty || _startDate == null || _endDate == null) {
       _showSnackBar("Vui lòng điền đầy đủ thông tin bắt buộc");
       return;
@@ -58,7 +55,6 @@ class _KhuyenmaiThemState extends State<KhuyenmaiThem> {
       return;
     }
 
-    // 2. Chuẩn bị dữ liệu
     final Map<String, dynamic> data = {
       "TenKhuyenMai": _tenController.text.trim(),
       "NgayBatDau": _startDate!.toIso8601String(),
@@ -67,17 +63,15 @@ class _KhuyenmaiThemState extends State<KhuyenmaiThem> {
       "DieuKien": int.tryParse(_dieuKienController.text.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0,
     };
 
-    // 3. Gọi Logic xử lý
-    FocusScope.of(context).unfocus(); // Ẩn bàn phím
+    FocusScope.of(context).unfocus();
     await logic.themKhuyenMai(
       data,
       onSuccess: () {
         _showSnackBar("Thêm khuyến mãi thành công!", isError: false);
-        Navigator.pop(context); // Quay lại trang danh sách
+        Navigator.pop(context);
       },
     );
 
-    // 4. Hiển thị lỗi nếu có từ server
     if (logic.errorMessage != null) {
       _showSnackBar(logic.errorMessage!);
     }
@@ -163,7 +157,6 @@ class _KhuyenmaiThemState extends State<KhuyenmaiThem> {
     );
   }
 
-  // --- Các Widget thành phần giữ nguyên style của bạn ---
   Widget _buildInputLabel(String label) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0),
