@@ -34,5 +34,8 @@ class Endpoints {
   static const String layphieunhaphang = "/layphieunhaphang";
   static const String laychitietphieunhaphang = "/laychitietphieunhaphang";
   static const String xoaphieunhaphang = "/xoaphieunhaphang";
-
+  static const String thongkenhaphang = "/thongkenhaphang";
+  static const String thongkebanhang = "/thongkebanhang";
+  static const String thongketonkho = "/thongketonkho";
+  static const String thongkedoanhthu = "/thongkedoanhthu";
 }

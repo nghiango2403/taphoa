@@ -12,11 +12,13 @@ import 'package:taphoa/data/repostories/hanghoa_repositories.dart';
 import 'package:taphoa/data/repostories/khuyenmai_repositories.dart';
 import 'package:taphoa/data/repostories/nhanvien_repositories.dart';
 import 'package:taphoa/data/repostories/nhaphang_repositories.dart';
+import 'package:taphoa/data/repostories/thongke_repositories.dart';
 import 'package:taphoa/features/account/logic/account_logic.dart';
 import 'package:taphoa/features/admin/hanghoa/logic/hanghoa_logic.dart';
 import 'package:taphoa/features/admin/khuyenmai/logic/khuyenmai_logic.dart';
 import 'package:taphoa/features/admin/nhanvien/logic/NhanVienLogic.dart';
 import 'package:taphoa/features/admin/nhaphang/logic/nhaphang_logic.dart';
+import 'package:taphoa/features/admin/thongke/logic/thongke_logic.dart';
 import 'package:taphoa/features/auth/logic/auth_logic.dart';
 import 'package:taphoa/routers/app_router.dart';
 
@@ -31,6 +33,7 @@ Future main() async {
   final nhanvienRepo = NhanVienRepository(dioClient.dio);
   final chucvuRepo = ChucVuRepository(dioClient.dio);
   final nhaphangRepo = NhapHangRepository(dioClient.dio);
+  final thongkeRepo = ThongKeRepositories(dioClient.dio);
   final authLogic = AuthLogic(authRepository);
   await authLogic.loadSavedAuth();
   runApp(
@@ -43,6 +46,7 @@ Future main() async {
         ChangeNotifierProvider(create: (_) => NhanVienLogic(nhanvienRepo)),
         ChangeNotifierProvider(create: (_) => ChucVuLogic(chucvuRepo)),
         ChangeNotifierProvider(create: (_) => NhapHangLogic(nhaphangRepo)),
+        ChangeNotifierProvider(create: (_) => ThongKeLogic(thongkeRepo)),
       ],
       child: const MyApp(),
     ),
@@ -88,25 +92,20 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _incrementCounter() {
     setState(() {
-
       _counter++;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(
-
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
 
         title: Text(widget.title),
       ),
       body: Center(
-
         child: Column(
-
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             const Text('You have pushed the button this many times:'),
