@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import 'package:taphoa/features/admin/hoadon/logic/hoadon_logic.dart';
+import 'package:taphoa/features/admin/hoadon/models/hoadon_xem_model.dart';
 import 'package:taphoa/features/admin/hoadon/ui/hoadon_xem.dart';
 
 class HoaDonTong extends StatefulWidget {
@@ -10,32 +13,36 @@ class HoaDonTong extends StatefulWidget {
 }
 
 class _HoaDonTongState extends State<HoaDonTong> {
-  final List<Map<String, dynamic>> _hoaDons = [
-    {
-      "stt": 1,
-      "nhanVien": "Nguyễn Văn Minh",
-      "ngay": "10:32:00 22/8/2025",
-      "km": "6882...46de",
-      "hinhThuc": "ZaloPay",
-      "tongTien": "18.000",
-    },
-    {
-      "stt": 2,
-      "nhanVien": "Nguyễn Văn Minh",
-      "ngay": "18:28:44 20/8/2025",
-      "km": "6882...46e2",
-      "hinhThuc": "Trực tiếp",
-      "tongTien": "50.000",
-    },
-    {
-      "stt": 5,
-      "nhanVien": "test",
-      "ngay": "15:37:16 1/8/2025",
-      "km": "",
-      "hinhThuc": "MoMo",
-      "tongTien": "120.000",
-    },
-  ];
+  final TextEditingController _monthController = TextEditingController();
+  final TextEditingController _yearController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _monthController.text = DateTime.now().month.toString();
+    _yearController.text = DateTime.now().year.toString();
+    // Gọi API lấy danh sách ngay khi vào màn hình
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fetcitemata();
+    });
+  }
+
+  void _fetcitemata() {
+    final String fullLocation = GoRouterState.of(context).uri.toString();
+    if (fullLocation == "/quanly/hoadon") {
+      context.read<HoaDonLogic>().layDanhSachHoaDon(
+        page: 1,
+        thang: _monthController.text,
+        nam: _yearController.text,
+      );
+    } else {
+      context.read<HoaDonLogic>().layDanhSachHoaDonNhanVien(
+        page: 1,
+        thang: _monthController.text,
+        nam: _yearController.text,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,25 +58,39 @@ class _HoaDonTongState extends State<HoaDonTong> {
         foregroundColor: Colors.black,
         elevation: 0.5,
       ),
-      body: Column(
-        children: [
-          _buildFilterHeader(),
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: _hoaDons.length,
-              itemBuilder: (context, index) {
-                return _buildHoaDonItem(_hoaDons[index]);
-              },
-            ),
-          ),
-          _buildPagination(),
-        ],
+      body: Consumer<HoaDonLogic>(
+        builder: (context, logic, child) {
+          return Column(
+            children: [
+              _buildFilterHeader(logic),
+              Expanded(
+                child: logic.isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : logic.listHoaDon.isEmpty
+                    ? _buildEmptyState()
+                    : RefreshIndicator(
+                        onRefresh: () async => _fetcitemata(),
+                        child: ListView.builder(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          itemCount: logic.listHoaDon.length,
+                          itemBuilder: (context, index) {
+                            return _buildHoaDonItem(
+                              logic.listHoaDon[index],
+                              logic,
+                            );
+                          },
+                        ),
+                      ),
+              ),
+              _buildPagination(logic),
+            ],
+          );
+        },
       ),
     );
   }
 
-  Widget _buildHoaDonItem(Map<String, dynamic> hd) {
+  Widget _buildHoaDonItem(Item item, HoaDonLogic logic) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -91,48 +112,75 @@ class _HoaDonTongState extends State<HoaDonTong> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                "Hóa đơn #${hd['stt']}",
+                "Hóa đơn #${item.id.substring(item.id.length - 4)}",
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
                   color: Colors.indigo,
                 ),
               ),
-              _buildPaymentChip(hd['hinhThuc']),
+              _buildPaymentChip(item.hinhThucThanhToan),
             ],
           ),
           const Divider(height: 24),
+          if (item.maNhanVien.hoTen != "N/A")
+            _rowDetail(
+              Icons.person_outline,
+              "Nhân viên: ",
+              item.maNhanVien.hoTen,
+              isBlue: true,
+            ),
           _rowDetail(
-            Icons.person_outline,
-            "Nhân viên: ",
-            hd['nhanVien'],
-            isBlue: true,
+            Icons.calendar_today_outlined,
+            "Ngày lập: ",
+            item.ngayLap.toString(),
           ),
-          _rowDetail(Icons.calendar_today_outlined, "Ngày lập: ", hd['ngay']),
-          _rowDetail(Icons.wallet_outlined, "Thanh toán: ", hd['hinhThuc']),
+          _rowDetail(
+            Icons.confirmation_number_outlined,
+            "Khuyến mãi: ",
+            item.maKhuyenMai ?? "Không có",
+          ),
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               TextButton.icon(
-                onPressed: () => _openDetailDialog(hd),
+                onPressed: () => _openDetailDialog(item),
                 icon: const Icon(Icons.visibility_outlined, size: 20),
                 label: const Text("Chi tiết"),
                 style: TextButton.styleFrom(foregroundColor: Colors.blue),
               ),
               Row(
                 children: [
-                  Text(
-                    "${hd['tongTien']} đ",
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                      color: Colors.green,
-                    ),
-                  ),
                   const SizedBox(width: 8),
                   IconButton(
-                    onPressed: () {},
+                    onPressed: () async {
+                      bool kq = await logic.xoaHoaDon(item.id);
+                      if (kq) {
+                        // 2. Kiểm tra xem Widget còn "sống" trong cây thư mục không trước khi dùng BuildContext
+                        if (!context.mounted) return;
+
+                        // 3. Thông báo thành công
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Đã xóa hóa đơn thành công!'),
+                            backgroundColor: Colors.green,
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+
+                        _fetcitemata();
+                      } else {
+                        // Xử lý khi xóa thất bại
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              logic.errorMessage ?? 'Có lỗi xảy ra',
+                            ),
+                          ),
+                        );
+                      }
+                    },
                     icon: const Icon(
                       Icons.delete_outline,
                       color: Colors.redAccent,
@@ -191,7 +239,7 @@ class _HoaDonTongState extends State<HoaDonTong> {
     );
   }
 
-  Widget _buildFilterHeader() {
+  Widget _buildFilterHeader(HoaDonLogic logic) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Row(
@@ -200,6 +248,7 @@ class _HoaDonTongState extends State<HoaDonTong> {
             flex: 2,
             child: TextField(
               keyboardType: TextInputType.number,
+              controller: _monthController,
               decoration: InputDecoration(
                 hintText: "Tháng",
                 isDense: true,
@@ -214,6 +263,7 @@ class _HoaDonTongState extends State<HoaDonTong> {
             flex: 2,
             child: TextField(
               keyboardType: TextInputType.number,
+              controller: _yearController,
               decoration: InputDecoration(
                 hintText: "Năm",
                 isDense: true,
@@ -225,7 +275,7 @@ class _HoaDonTongState extends State<HoaDonTong> {
           ),
           const SizedBox(width: 10),
           ElevatedButton(
-            onPressed: () {},
+            onPressed: _fetcitemata,
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.blue,
               shape: RoundedRectangleBorder(
@@ -237,7 +287,10 @@ class _HoaDonTongState extends State<HoaDonTong> {
           const SizedBox(width: 10),
           ElevatedButton.icon(
             onPressed: () {
-              context.push("/quanly/hoadon/them");
+              bool isSuccess = context.push("/quanly/hoadon/them") as bool;
+              if (isSuccess) {
+                _fetcitemata();
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.green,
@@ -257,38 +310,103 @@ class _HoaDonTongState extends State<HoaDonTong> {
     );
   }
 
-  Widget _buildPagination() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          IconButton(onPressed: () {}, icon: const Icon(Icons.chevron_left)),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.blue,
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: const Text(
-              "1",
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          IconButton(onPressed: () {}, icon: const Icon(Icons.chevron_right)),
-        ],
-      ),
+  Widget _buildPagination(HoaDonLogic logic) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        IconButton(
+          onPressed: logic.currentPage > 1
+              ? () => logic.layDanhSachHoaDon(page: logic.currentPage - 1)
+              : null,
+          icon: const Icon(Icons.chevron_left),
+        ),
+        // Hiển thị số trang
+        Text("${logic.currentPage} / ${logic.totalPages}"),
+        IconButton(
+          onPressed: logic.currentPage < logic.totalPages
+              ? () => logic.layDanhSachHoaDon(page: logic.currentPage + 1)
+              : null,
+          icon: const Icon(Icons.chevron_right),
+        ),
+      ],
     );
   }
 
-  void _openDetailDialog(Map<String, dynamic> hd) {
-
+  void _openDetailDialog(Item data) {
     showDialog(
       context: context,
-      builder: (context) => HoadonXem(data: {...hd}),
+      builder: (context) => HoaDonXem(item: data),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: SingleChildScrollView(
+        // Tránh lỗi tràn khung khi màn hình nhỏ
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Hình ảnh minh họa hoặc Icon
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.indigo.shade50,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.receipt_long_outlined,
+                size: 80,
+                color: Colors.indigo.shade200,
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Tiêu đề chính
+            const Text(
+              "Không có hóa đơn nào",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 8),
+
+            // Mô tả chi tiết (Dynamic dựa trên bộ lọc nếu muốn)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40),
+              child: Text(
+                "Danh sách hiện đang trống. Hãy thử thay đổi bộ lọc hoặc tạo hóa đơn mới nhé!",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey.shade600,
+                  height: 1.5,
+                ),
+              ),
+            ),
+            const SizedBox(height: 32),
+
+            // Nút hành động nhanh (Tùy chọn)
+            OutlinedButton.icon(
+              onPressed: () {
+                // Gọi lại hàm fetch data để làm mới
+                context.read<HoaDonLogic>().layDanhSachHoaDon();
+              },
+              icon: const Icon(Icons.refresh),
+              label: const Text("Tải lại dữ liệu"),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.indigo,
+                side: BorderSide(color: Colors.indigo.shade100),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

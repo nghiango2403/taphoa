@@ -1,8 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:taphoa/core/network/api_endpoints.dart';
+import 'package:taphoa/features/admin/khuyenmai/models/khuyenmai_laybangid_model.dart';
 import 'package:taphoa/features/admin/khuyenmai/models/khuyenmai_sua_model.dart';
 import 'package:taphoa/features/admin/khuyenmai/models/khuyenmai_them_model.dart';
 import 'package:taphoa/features/admin/khuyenmai/models/khuyenmai_tong_model.dart';
+import 'package:taphoa/features/admin/khuyenmai/models/khuyenmai_xem_conhoatdong_model.dart';
 
 class KhuyenMaiRepository {
   final Dio _dio;
@@ -11,7 +13,10 @@ class KhuyenMaiRepository {
 
   Future<KhuyenMaiTongModel> layKhuyenMai(Map<String, dynamic> data) async {
     try {
-      final response = await _dio.get(Endpoints.laykhuyenmai, queryParameters: data);
+      final response = await _dio.get(
+        Endpoints.laykhuyenmai,
+        queryParameters: data,
+      );
       final km = KhuyenMaiTongModel.fromJson(response.data);
       if (km.status == 200) {
         return km;
@@ -24,9 +29,45 @@ class KhuyenMaiRepository {
       throw e.toString();
     }
   }
+
+  Future<KhuyenMaiXemConHoatDongModel> layKhuyenMaiConHoatDong() async {
+    try {
+      final response = await _dio.get(Endpoints.laykhuyenmaiconhoatdong);
+      final km = KhuyenMaiXemConHoatDongModel.fromJson(response.data);
+      if (km.status == 200) {
+        return km;
+      } else {
+        throw km.message;
+      }
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    } catch (e) {
+      throw e.toString();
+    }
+  }
+
+  Future<KhuyenMaiLayBangIdModel> layKhuyenMaiBangId(String id) async {
+    try {
+      final response = await _dio.get(
+        Endpoints.laykhuyenmaiconhoatdong,
+        queryParameters: {'MaKhuyenMai': id},
+      );
+      final km = KhuyenMaiLayBangIdModel.fromJson(response.data);
+      if (km.status == 200) {
+        return km;
+      } else {
+        throw km.message;
+      }
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    } catch (e) {
+      throw e.toString();
+    }
+  }
+
   Future<KhuyenMaiThemModel> themKhuyenMai(Map<String, dynamic> data) async {
     try {
-      final response = await _dio.post(Endpoints.themkhuyenmai,data: data);
+      final response = await _dio.post(Endpoints.themkhuyenmai, data: data);
       final km = KhuyenMaiThemModel.fromJson(response.data);
       if (km.status == 200) {
         return km;
@@ -39,12 +80,13 @@ class KhuyenMaiRepository {
       throw e.toString();
     }
   }
-  Future<KhuyenMaiSuaModel> suaKhuyenMai(String id, Map<String, dynamic> data) async {
+
+  Future<KhuyenMaiSuaModel> suaKhuyenMai(
+    String id,
+    Map<String, dynamic> data,
+  ) async {
     try {
-      final Map<String, dynamic> queryParams = {
-        "MaKhuyenMai": id,
-        ...data,
-      };
+      final Map<String, dynamic> queryParams = {"MaKhuyenMai": id, ...data};
 
       final response = await _dio.put(
         Endpoints.capnhatkhuyenmai,
@@ -64,6 +106,7 @@ class KhuyenMaiRepository {
       throw e.toString();
     }
   }
+
   String _handleDioError(DioException e) {
     if (e.response != null && e.response?.data != null) {
       return e.response?.data['message'] ?? "Lỗi";

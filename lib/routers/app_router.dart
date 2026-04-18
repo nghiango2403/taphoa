@@ -18,8 +18,6 @@ import 'package:taphoa/features/admin/nhaphang/ui/nhaphang_tong.dart';
 import 'package:taphoa/features/admin/thongke/ui/thongke.dart';
 import 'package:taphoa/features/auth/logic/auth_logic.dart';
 import 'package:taphoa/features/navigation/presentation/screens/main_screen.dart';
-import 'package:taphoa/features/staff/ui/bill_add.dart';
-import 'package:taphoa/features/staff/ui/product_add.dart';
 
 import '../features/auth/ui/login_screen.dart';
 
@@ -49,8 +47,7 @@ class AppRouter {
       },
       routes: [
         GoRoute(
-          path:
-              '/login',
+          path: '/login',
           parentNavigatorKey: _rootNavigatorKey,
           builder: (context, state) => const LoginScreen(),
         ),
@@ -63,11 +60,11 @@ class AppRouter {
               routes: [
                 GoRoute(
                   path: "/",
-                  builder: (context, state) => BillAdd(),
+                  builder: (context, state) => const HoaDonTong(),
                   routes: [
                     GoRoute(
-                      path: "product_add",
-                      builder: (context, state) => ProductAdd(),
+                      path: "them",
+                      builder: (context, state) => const HoaDonThem(),
                     ),
                   ],
                 ),

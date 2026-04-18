@@ -38,4 +38,13 @@ class Endpoints {
   static const String thongkebanhang = "/thongkebanhang";
   static const String thongketonkho = "/thongketonkho";
   static const String thongkedoanhthu = "/thongkedoanhthu";
+  static const String themhoadon = "/themhoadon";
+  static const String xemdanhsachhoadon = "/xemdanhsachhoadon";
+  static const String xemdanhsachhoadoncuanhanvien =
+      "/xemdanhsachhoadoncuanhanvien";
+  static const String xemchitiethoadon = "/xemchitiethoadon";
+  static const String xoahoadon = "/xoahoadon";
+  static const String laykhuyenmaiconhoatdong = "/laykhuyenmaiconhoatdong";
+  static const String laykhuyenmaibangid = "/laykhuyenmaibangid";
+  static const String kiemtratrangthaithanhtoan = "/kiemtratrangthaithanhtoan";
 }

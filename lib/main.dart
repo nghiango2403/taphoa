@@ -9,12 +9,14 @@ import 'package:taphoa/data/repostories/account_repositories.dart';
 import 'package:taphoa/data/repostories/auth_repositories.dart';
 import 'package:taphoa/data/repostories/chucvu_repositories.dart';
 import 'package:taphoa/data/repostories/hanghoa_repositories.dart';
+import 'package:taphoa/data/repostories/hoadon_repositories.dart';
 import 'package:taphoa/data/repostories/khuyenmai_repositories.dart';
 import 'package:taphoa/data/repostories/nhanvien_repositories.dart';
 import 'package:taphoa/data/repostories/nhaphang_repositories.dart';
 import 'package:taphoa/data/repostories/thongke_repositories.dart';
 import 'package:taphoa/features/account/logic/account_logic.dart';
 import 'package:taphoa/features/admin/hanghoa/logic/hanghoa_logic.dart';
+import 'package:taphoa/features/admin/hoadon/logic/hoadon_logic.dart';
 import 'package:taphoa/features/admin/khuyenmai/logic/khuyenmai_logic.dart';
 import 'package:taphoa/features/admin/nhanvien/logic/NhanVienLogic.dart';
 import 'package:taphoa/features/admin/nhaphang/logic/nhaphang_logic.dart';
@@ -34,6 +36,7 @@ Future main() async {
   final chucvuRepo = ChucVuRepository(dioClient.dio);
   final nhaphangRepo = NhapHangRepository(dioClient.dio);
   final thongkeRepo = ThongKeRepositories(dioClient.dio);
+  final hoadonRepo = HoaDonRepositories(dioClient.dio);
   final authLogic = AuthLogic(authRepository);
   await authLogic.loadSavedAuth();
   runApp(
@@ -47,6 +50,9 @@ Future main() async {
         ChangeNotifierProvider(create: (_) => ChucVuLogic(chucvuRepo)),
         ChangeNotifierProvider(create: (_) => NhapHangLogic(nhaphangRepo)),
         ChangeNotifierProvider(create: (_) => ThongKeLogic(thongkeRepo)),
+        ChangeNotifierProvider(
+          create: (_) => HoaDonLogic(hoadonRepo, khuyenmaiRepo),
+        ),
       ],
       child: const MyApp(),
     ),
